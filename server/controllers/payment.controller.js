@@ -8,12 +8,22 @@ export const recordPayment = async (req, res, next) => {
     const bill = await Bill.findById(bill_id);
     if (!bill) return res.status(404).json({ message: "Bill not found" });
 
+    // Ensure payment method matches enum: ["cash", "card", "UPI", "online_gateway"]
+    let method = "cash";
+    const passedMethod = payment_method?.toLowerCase() || '';
+    if (passedMethod.includes('upi')) method = "UPI";
+    else if (passedMethod.includes('card')) method = "card";
+    else if (passedMethod.includes('online')) method = "online_gateway";
+    
     const payment = new Payment({
       bill_id,
+      booking_id: bill.booking_id,
       amount: Number(amount),
-      payment_method,
+      method,
       transaction_id,
-      status: "completed",
+      payment_date: new Date(),
+      status: "success",
+      collected_by: req.user.id
     });
 
     await payment.save();

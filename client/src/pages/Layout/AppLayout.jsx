@@ -1,38 +1,29 @@
-import React from 'react'
-import { Outlet, useLocation } from 'react-router-dom';
-import SideBar from '../../components/SideBar/SideBar';
-import Header from '../../components/Header/Header';
+import React from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import SideBar from "../../components/SideBar/SideBar";
+import Header from "../../components/Header/Header";
 
 const AppLayout = () => {
   const location = useLocation();
 
   const isAuthRoute = location.pathname.includes("/auth/");
   if (isAuthRoute) {
-    // console.log("🔓 Rendering auth route without layout");
     return <Outlet />;
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F9F8F3] font-sans">
-      <div className="flex flex-1 w-full relative">
-        {/* sticky sidebar */}
-        <div className="sticky top-0 h-screen">
-            <SideBar />
+    <div className="bg-surface text-on-surface selection:bg-primary/20 flex h-screen overflow-hidden w-full">
+      <SideBar />
+      <main className="flex-1 flex flex-col h-screen bg-surface min-w-0 overflow-hidden">
+        <div className="flex-none w-full">
+          <Header />
         </div>
-
-        <main className="flex-1 w-full wrap-break-word">
-          {/* sticky header */}
-          <div className="sticky top-0 z-50">
-            <Header />
-          </div>
-
-          <div className="p-4">
-            <Outlet />
-          </div>
-        </main>
-      </div>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-10 space-y-10 w-full" id="scrollable-outlet">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
-}
+};
 
-export default AppLayout
+export default AppLayout;

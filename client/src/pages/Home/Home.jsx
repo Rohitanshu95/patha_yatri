@@ -6,13 +6,13 @@ const Home = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
 
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      navigate(`/app/${user.role}`);
-    } else {
-      navigate("/auth/login");
-    }
-  }, [isAuthenticated, user, navigate]);
+  // useEffect(() => {
+  //   if (isAuthenticated && user) {
+  //     navigate(`/app/${user.role}`);
+  //   } else {
+  //     navigate("/auth/login");
+  //   }
+  // }, [isAuthenticated, user, navigate]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

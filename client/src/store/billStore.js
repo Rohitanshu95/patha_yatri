@@ -20,7 +20,13 @@ export const useBillStore = create((set) => ({
     try {
       set({ isLoading: true });
       const res = await axiosInstance.post("/bills/generate", { bookingId });
-      set((state) => ({ bills: [res.data, ...state.bills], isLoading: false }));
+      set((state) => {
+        const exists = state.bills.find(b => b._id === res.data._id);
+        if (exists) {
+          return { bills: state.bills.map(b => b._id === res.data._id ? res.data : b), isLoading: false };
+        }
+        return { bills: [res.data, ...state.bills], isLoading: false };
+      });
       return res.data;
     } catch (error) {
       set({ error: error.message, isLoading: false });
@@ -31,7 +37,15 @@ export const useBillStore = create((set) => ({
   processPayment: async (billId, paymentData) => {
     try {
       set({ isLoading: true });
-      const res = await axiosInstance.post(`/payments/\${billId}/pay`, paymentData);
+      // Map frontend data to strictly match backend expected payload
+      const payload = {
+        bill_id: billId,
+        amount: paymentData.amount,
+        payment_method: paymentData.method?.toLowerCase() || 'cash', // Fallback to 'cash' 
+        transaction_id: paymentData.transaction_id || `txn_${Date.now()}`
+      };
+      
+      const res = await axiosInstance.post(`/payments/record`, payload);
       set((state) => ({
         bills: state.bills.map((b) => b._id === billId ? res.data.bill : b),
         isLoading: false
@@ -45,7 +59,7 @@ export const useBillStore = create((set) => ({
 
   downloadInvoice: async (billId) => {
      try {
-       const res = await axiosInstance.get(`/bills/\${billId}/pdf`, { responseType: 'blob' });
+       const res = await axiosInstance.get(`/bills/${billId}/invoice`, { responseType: 'blob' });
        const url = window.URL.createObjectURL(new Blob([res.data]));
        const link = document.createElement('a');
        link.href = url;

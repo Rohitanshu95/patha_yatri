@@ -1,1 +1,74 @@
 @import "tailwindcss";
+
+@theme {
+  --color-primary: #C5A059;
+  --color-primary-container: #775A19;
+  
+  --color-on-surface: #222222;
+  --color-on-surface-variant: #777777;
+  
+  --color-surface: #FFFFFF;
+  --color-surface-container: #F8F9FA;
+  --color-surface-lowest: #FFFFFF;
+  --color-surface-low: #F3F4F5;
+  --color-surface-dim: #D9DADB;
+  
+  --color-outline: #D1C5B4;
+  --color-outline-variant: rgba(209, 197, 180, 0.15);
+  
+  --color-error: #BA1A1A;
+
+  --font-serif: "Noto Serif", serif;
+  --font-sans: "Manrope", sans-serif;
+  --font-headline: "Noto Serif", serif;
+  --font-body: "Manrope", sans-serif;
+  --font-label: "Manrope", sans-serif;
+  
+  --radius-none: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-full: 0px;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color: var(--color-on-surface);
+    background-color: var(--color-surface);
+  }
+  
+  h1, h2, h3, h4, h5, h6, .font-headline {
+    font-family: var(--font-serif);
+    color: var(--color-on-surface);
+  }
+
+  * {
+    border-radius: 0 !important;
+  }
+}
+
+@layer utilities {
+  .bg-gold-gradient {
+    background-image: linear-gradient(135deg, var(--color-primary-container), var(--color-primary));
+  }
+  
+  .glass-nav {
+    background-color: rgba(243, 244, 245, 0.8);
+    backdrop-filter: blur(12px);
+  }
+
+  .luxury-gradient {
+    background-color: var(--color-surface-container);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(197, 160, 89, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(34, 34, 34, 0.03) 0px, transparent 50%);
+  }
+
+  .luxury-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23C5A059' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+}
+}
