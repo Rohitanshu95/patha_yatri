@@ -5,6 +5,7 @@ import Room from "../models/Room.js";
 import Service from "../models/Service.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import { calculateBill } from "../utils/billCalculator.js";
+import { sendBookingMail, sendInvoiceMail } from "../utils/mail.js";
 
 // Read endpoints
 export const getAllBookings = async (req, res, next) => {
@@ -159,6 +160,23 @@ export const createBooking = async (req, res, next) => {
     await bill.save();
     await booking.save();
 
+    // Send the Welcome/Booking Confirmation Email asynchronously
+    try {
+      const populatedBooking = await Booking.findById(booking._id).populate("guest_id").populate("room_id");
+      if (populatedBooking && populatedBooking.guest_id && populatedBooking.guest_id.email) {
+        await sendBookingMail({
+          to: populatedBooking.guest_id.email,
+          guestName: `${populatedBooking.guest_id.first_name} ${populatedBooking.guest_id.last_name}`,
+          bookingId: populatedBooking._id.toString(),
+          roomType: populatedBooking.room_id?.room_number || "Selected Room",
+          checkInDate: new Date().toLocaleDateString(),
+          checkOutDate: new Date(expected_checkout).toLocaleDateString()
+        });
+      }
+    } catch (mailError) {
+      console.error("Error sending booking email:", mailError);
+    }
+
     res.status(201).json(booking);
   } catch (error) {
     next(error);
@@ -230,6 +248,22 @@ export const checkOut = async (req, res, next) => {
     }
 
     await bill.save();
+
+    // Send the Checkout/Thank You Invoice Email asynchronously
+    try {
+      const populatedBooking = await Booking.findById(booking._id).populate("guest_id");
+      if (populatedBooking && populatedBooking.guest_id && populatedBooking.guest_id.email) {
+        await sendInvoiceMail({
+          to: populatedBooking.guest_id.email,
+          guestName: `${populatedBooking.guest_id.first_name} ${populatedBooking.guest_id.last_name}`,
+          billId: bill.invoice_number || bill._id.toString(),
+          totalAmount: bill.total_amount.toString(),
+          checkOutDate: new Date().toLocaleDateString()
+        });
+      }
+    } catch (mailError) {
+      console.error("Error sending invoice email:", mailError);
+    }
 
     res.json({ booking, bill });
   } catch (error) {
