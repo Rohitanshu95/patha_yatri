@@ -1,0 +1,469 @@
+
+🏨
+Hotel Billing Software
+Developer Documentation
+
+
+Version	1.0.0
+Status	Initial Release
+Date	19 March 2026
+Stack	Node.js · Express · MongoDB · React
+Audience	Backend & Frontend Developers
+
+ 
+1. Project Overview
+Hotel Billing Software is a full-stack web application designed to digitize and automate hotel operations — from guest registration and room booking through stay management, service tracking, billing and payment collection. The system replaces paper-based processes with a real-time, role-gated platform accessible to hotel staff at all levels.
+
+1.1 Core Objectives
+•	Automate end-to-end billing from check-in to check-out
+•	Provide real-time room availability and occupancy tracking
+•	Record and charge additional services (food, laundry, spa)
+•	Support multiple payment modes with partial payment tracking
+•	Generate GST-compliant invoices and financial reports
+•	Enforce role-based access for Admin, Manager, and Receptionist
+
+1.2 Technology Stack
+Layer	Technology	Purpose
+Runtime	Node.js 20 LTS	Server-side JavaScript runtime
+Framework	Express.js 4.x	RESTful API routing and middleware
+Database	MongoDB 7 + Mongoose	Document store for flexible schema data
+Frontend	React 18 + Vite	SPA for hotel staff interface
+UI Library	Tailwind CSS + shadcn/ui	Styling and component system
+Auth	JWT + bcrypt	Stateless authentication with hashed passwords
+File Storage	Cloudinary / AWS S3	ID proof document uploads
+Payments	Razorpay / Stripe	Online payment gateway integration
+Email/SMS	Nodemailer + Twilio	Booking confirmations and notifications
+Validation	Zod / Joi	Schema-level request validation
+Testing	Jest + Supertest	Unit and integration tests
+CI/CD	GitHub Actions	Automated testing and deployment
+
+2. Database Schemas
+The database is organized into 7 MongoDB collections. All schemas use Mongoose ODM. ObjectId references are used for cross-collection relationships. Timestamps (createdAt, updatedAt) are enabled globally on all schemas.
+
+2.1 User Schema
+	Collection: users  |  Indexes: email (unique), role
+Purpose: Stores hotel staff accounts with role-based access control.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+name	String	Yes	Full name of the staff member
+email	String	Yes	Unique. Used as login identifier
+password	String	Yes	Bcrypt hashed. Min 8 chars
+role	Enum	Yes	admin | receptionist | manager
+isActive	Boolean	Yes	Soft-delete flag, default true
+lastLogin	Date	No	Timestamp of last successful login
+createdAt	Date	Auto	Mongoose timestamps
+updatedAt	Date	Auto	Mongoose timestamps
+
+2.2 Room Schema
+	Collection: rooms  |  Indexes: room_number (unique), availability, category
+Purpose: Stores physical room data, tariffs, and current occupancy status.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+room_number	String	Yes	Unique room identifier (e.g. '101', 'S-01')
+name	String	Yes	Display name (e.g. 'Ocean View Suite')
+room_category	Enum	Yes	standard | deluxe | suite
+floor	Number	No	Floor number
+availability	Enum	Yes	available | occupied | maintenance
+price.per_night	Number	Yes	Base nightly rate in INR
+price.per_hour	Number	No	Hourly rate (for short stays)
+price.tax_percent	Number	Yes	GST percentage (e.g. 12 or 18)
+amenities	[String]	No	e.g. ['AC', 'WiFi', 'TV']
+max_occupants	Number	Yes	Maximum allowed guests
+images	[String]	No	Array of image URLs
+bookings	[ObjectId]	Ref	References → bookings collection
+
+2.3 Guest Schema
+	Collection: guests  |  Indexes: contact (unique), email
+Purpose: Stores guest personal information, ID proof details, and occupant breakdown.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+name	String	Yes	Full name of primary guest
+contact	String	Yes	Mobile number with country code
+email	String	No	Optional. Used for invoice emails
+address	String	No	Residential / corporate address
+documents.id_proof	String	Yes	Type: Aadhar | Passport | DL | etc.
+documents.number	String	Yes	ID proof number
+documents.file_url	String	Yes	S3 / Cloudinary URL of uploaded scan
+occupants.total	Number	Yes	Total number of people in room
+occupants.adults.count	Number	Yes	Total adults
+occupants.adults.male	Number	Yes	Male adults count
+occupants.adults.female	Number	Yes	Female adults count
+occupants.children	Number	Yes	Children count
+booking_history	[ObjectId]	Ref	References → bookings collection
+
+2.4 Booking Schema
+	Collection: bookings  |  Indexes: status, check_in_date, room_id
+Purpose: Central document linking a room, guest, bill, services and payment for a stay.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+room_id	ObjectId	Yes	Reference → rooms._id
+guest_id	ObjectId	Yes	Reference → guests._id
+bill_id	ObjectId	Yes	Reference → bills._id
+check_in_date	Date	Yes	Actual or expected check-in datetime
+check_out_date	Date	No	Set at check-out
+expected_checkout	Date	Yes	Planned departure datetime
+status	Enum	Yes	booked | checked-in | checked-out | cancelled
+booking_source	Enum	No	walk-in | online | OTA | phone
+advance_paid	Number	No	Advance amount collected at booking
+services	[ObjectId]	Ref	Array of references → services._id
+notes	String	No	Internal staff notes
+created_by	ObjectId	Ref	Reference → users._id (receptionist)
+
+2.5 Service Schema
+	Collection: services  |  Indexes: booking_id, type, created_at
+Purpose: Individual add-on service charges attached to a booking during a stay.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+booking_id	ObjectId	Yes	Reference → bookings._id
+type	Enum	Yes	fooding | laundry | spa | other
+name	String	Yes	Service item name (e.g. 'Biriyani')
+quantity	Number	Yes	Units consumed
+unit_price	Number	Yes	Price per unit in INR
+total_price	Number	Yes	quantity × unit_price (computed)
+description	String	No	Additional details or notes
+served_at	Date	Yes	When the service was delivered
+added_by	ObjectId	Ref	Reference → users._id (staff)
+
+2.6 Bill Schema
+	Collection: bills  |  Indexes: booking_id, status, created_at
+Purpose: Aggregated billing document with charges, taxes, discounts, and payment status.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+booking_id	ObjectId	Yes	Reference → bookings._id
+room_charge	Number	Yes	Calculated from room price × duration
+services_charge	Number	Yes	Sum of all services.total_price
+tax_amount	Number	Yes	GST computed on (room + service charges)
+discount.type	Enum	No	seasonal | loyalty | corporate | manual
+discount.amount	Number	No	Discount amount in INR
+total_amount	Number	Yes	room + services + tax − discount
+amount_paid	Number	Yes	Sum of all successful payments
+remaining_amount	Number	Yes	total_amount − amount_paid
+status	Enum	Yes	paid | unpaid | partial
+payments	[ObjectId]	Ref	Array of references → payments._id
+invoice_number	String	Yes	Unique invoice ID (auto-generated)
+finalized_at	Date	No	Timestamp when bill was closed
+
+2.7 Payment Schema
+	Collection: payments  |  Indexes: bill_id, transaction_id (unique), payment_date
+Purpose: Records each individual payment transaction against a bill.
+
+Field	Type	Required	Notes
+_id	ObjectId	Auto	MongoDB default primary key
+bill_id	ObjectId	Yes	Reference → bills._id
+booking_id	ObjectId	Yes	Reference → bookings._id (for fast lookup)
+method	Enum	Yes	cash | card | UPI | online_gateway
+amount	Number	Yes	Amount paid in this transaction
+transaction_id	String	No	Gateway transaction ID (for card/UPI/online)
+payment_date	Date	Yes	Timestamp of payment
+status	Enum	Yes	success | failed | refunded | pending
+refund_amount	Number	No	Amount refunded (if applicable)
+refund_date	Date	No	Date of refund
+collected_by	ObjectId	Ref	Reference → users._id (staff)
+notes	String	No	Optional notes (e.g. 'advance payment')
+
+2.8 Schema Relationship Diagram
+	User  ──creates──▶  Booking  ──has one──▶  Guest
+Booking  ──belongs to──▶  Room
+Booking  ──has many──▶  Services
+Booking  ──has one──▶  Bill  ──has many──▶  Payments
+Room  ──has many──▶  Bookings  (historical references)
+Guest  ──has many──▶  Bookings  (booking history)
+
+3. Development Phases
+The project is divided into 5 sequential phases. Each phase builds on the previous and delivers a testable increment. Estimated timelines assume a 2-developer team working full time.
+
+Phase 1: Project Setup & Core Infrastructure   ⏱ 1 Week
+▸	Initialize Node.js + Express project with folder structure
+▸	Set up MongoDB Atlas connection with Mongoose
+▸	Configure environment variables (.env) and config module
+▸	Implement JWT authentication middleware (login, token refresh, logout)
+▸	Create User schema and seed Admin, Manager, Receptionist roles
+▸	Set up Zod validation middleware for request bodies
+▸	Configure CORS, helmet, morgan, rate limiter
+▸	Initialize React + Vite frontend with Tailwind CSS
+▸	Set up Axios with interceptors and global error handler
+▸	Create shared UI components: Button, Input, Modal, Toast
+▸	Write base Jest configuration and sample test
+
+
+Phase 2: Room & Guest Management   ⏱ 1.5 Weeks
+▸	Implement Room CRUD API (create, list, update, change status)
+▸	Implement Guest registration API with Cloudinary ID proof upload
+▸	Build availability-check logic (query rooms by date range and status)
+▸	Create Room Management UI: list, add/edit room, filter by category/status
+▸	Create Guest Registration UI: multi-step form with document upload
+▸	Implement room status auto-update (occupied on check-in, available on check-out)
+▸	Build availability calendar component (React)
+▸	Write unit tests for Room and Guest controllers
+
+
+Phase 3: Booking & Check-in / Check-out   ⏱ 2 Weeks
+▸	Implement Booking creation API (walk-in + reservation)
+▸	Build Booking status machine: booked → checked-in → checked-out | cancelled
+▸	Create advance payment capture at booking time
+▸	Implement Check-in API: assign room, create initial Bill document
+▸	Implement Check-out API: finalize bill, update room status, issue invoice
+▸	Build Service-addition API: attach food / laundry / spa charges to booking
+▸	Create Booking Management UI: table with search, filter, status badges
+▸	Build Check-in / Check-out flow UI with confirmation modals
+▸	Build live 'running bill' panel visible during a guest's stay
+▸	Implement late check-out and early check-in surcharge logic
+▸	Write integration tests for full booking lifecycle
+
+
+Phase 4: Billing, Payments & Invoicing   ⏱ 2 Weeks
+▸	Implement bill auto-calculation (room charge × nights + services + GST − discount)
+▸	Build discount engine supporting: seasonal, loyalty, corporate, manual types
+▸	Integrate Razorpay for online payments; implement webhook handler
+▸	Implement partial payment and remaining balance tracking
+▸	Build refund API with status transition (success → refunded)
+▸	Generate PDF invoices using PDFKit (printable + email-ready)
+▸	Integrate Nodemailer: send invoice PDF on checkout
+▸	Create Billing UI: view bill, apply discount, process payment
+▸	Build Payment History UI per booking
+▸	Write tests for bill calculation edge cases (hourly, partial, refund)
+
+
+Phase 5: Reporting, Analytics & Final Polish   ⏱ 1.5 Weeks
+▸	Build Daily Revenue Report API (aggregation pipeline)
+▸	Build Occupancy Report API (room-wise and category-wise)
+▸	Build GST/Tax Report API (period-based aggregation)
+▸	Create Dashboard UI: revenue chart, occupancy rate, today's check-ins/outs
+▸	Create Reports page with date-range picker and export-to-CSV
+▸	Implement audit log collection for all critical operations
+▸	Add SMS notifications via Twilio (booking confirmation, checkout reminder)
+▸	Performance: add MongoDB compound indexes, Mongoose lean queries
+▸	Security: rate limiting, input sanitization, helmet headers review
+▸	End-to-end testing (Playwright) covering full guest journey
+▸	Deployment: Dockerize backend + frontend, set up GitHub Actions CI/CD
+▸	Write API documentation (Swagger/OpenAPI)
+
+
+4. API Reference
+All endpoints are prefixed with /api/v1. Authentication uses JWT Bearer tokens. Role column shows minimum required role to access the endpoint.
+
+4.1 Auth Endpoints
+Method	Endpoint	Auth	Description
+POST	/auth/login	Public	Login with email + password, returns JWT
+POST	/auth/logout	JWT	Invalidate token / clear refresh token
+GET	/auth/me	JWT	Get currently logged-in user profile
+
+4.2 Room Endpoints
+Method	Endpoint	Auth	Description
+GET	/rooms	Receptionist	List all rooms with optional filters
+GET	/rooms/:id	Receptionist	Get single room details and bookings
+POST	/rooms	Admin	Create a new room
+PUT	/rooms/:id	Admin	Update room details or tariff
+PATCH	/rooms/:id/status	Receptionist	Change availability status
+GET	/rooms/available	Receptionist	Check available rooms for date range
+
+4.3 Guest Endpoints
+Method	Endpoint	Auth	Description
+POST	/guests	Receptionist	Register new guest with ID proof upload
+GET	/guests	Receptionist	Search guests by name / contact
+GET	/guests/:id	Receptionist	Get guest profile and booking history
+PUT	/guests/:id	Receptionist	Update guest details
+
+4.4 Booking Endpoints
+Method	Endpoint	Auth	Description
+POST	/bookings	Receptionist	Create a new booking (walk-in or reservation)
+GET	/bookings	Receptionist	List bookings with filters (status, date, room)
+GET	/bookings/:id	Receptionist	Get full booking details
+PATCH	/bookings/:id/checkin	Receptionist	Perform check-in, creates bill
+PATCH	/bookings/:id/checkout	Receptionist	Perform check-out, finalizes bill
+PATCH	/bookings/:id/cancel	Manager	Cancel a booking
+POST	/bookings/:id/services	Receptionist	Add service charge to booking
+DELETE	/bookings/:id/services/:sid	Manager	Remove a service charge
+
+4.5 Bill & Payment Endpoints
+Method	Endpoint	Auth	Description
+GET	/bills/:bookingId	Receptionist	Get current bill for a booking
+PATCH	/bills/:id/discount	Manager	Apply discount to bill
+POST	/payments	Receptionist	Record a payment (cash/card/UPI)
+POST	/payments/online/create-order	Receptionist	Create Razorpay order
+POST	/payments/online/verify	Public	Razorpay webhook verification
+POST	/payments/:id/refund	Manager	Initiate a refund
+GET	/bills/:id/invoice	Receptionist	Download PDF invoice
+
+4.6 Reporting Endpoints
+Method	Endpoint	Auth	Description
+GET	/reports/revenue	Manager	Daily/weekly/monthly revenue summary
+GET	/reports/occupancy	Manager	Occupancy rate by room/category/date
+GET	/reports/gst	Manager	GST collected for a given period
+GET	/reports/audit-log	Admin	Full audit log with filters
+
+5. Business Process Flow
+
+Step 1 — Reservation / Walk-in
+•	Guest books room online or walks in to reception
+•	System checks room availability for requested date range
+•	Booking document is created with status: booked
+•	Optional: advance payment is captured, stored in advance_paid field
+
+Step 2 — Check-in
+•	Receptionist locates booking or creates new walk-in booking
+•	Guest details entered / verified (name, contact, ID proof uploaded)
+•	Room assigned — room.availability updated to occupied
+•	Booking status updated to checked-in
+•	Empty Bill document created and linked to booking
+
+Step 3 — During Stay
+•	Staff add service charges as consumed (food, laundry, spa)
+•	Each service creates a Service document linked to the booking
+•	Bill document is recalculated in real-time on every service addition
+•	Receptionist can view running bill at any time from the booking panel
+
+Step 4 — Billing Calculation
+•	room_charge = price_per_night × number_of_nights (or hourly rate if applicable)
+•	services_charge = sum of all Service.total_price for this booking
+•	tax_amount = (room_charge + services_charge) × tax_percent / 100
+•	discount deducted if a discount object is present on the bill
+•	total_amount = room_charge + services_charge + tax_amount − discount.amount
+
+Step 5 — Check-out & Payment
+•	Final bill displayed to guest; receptionist confirms
+•	Payment collected via cash / card / UPI / online gateway
+•	Each payment creates a Payment document; bill.amount_paid is updated
+•	If amount_paid >= total_amount → bill.status = paid
+•	If amount_paid > 0 but < total_amount → bill.status = partial
+•	Invoice PDF generated and emailed to guest (if email on file)
+•	Room.availability updated back to available
+•	Booking.status updated to checked-out
+
+Step 6 — Reporting & Audit
+•	Daily transaction summary generated via aggregation pipeline
+•	Revenue, occupancy, and GST data available on Manager dashboard
+•	All critical operations logged to audit_logs collection
+
+6. Recommended Folder Structure
+
+Backend (Node.js / Express)
+hotel-billing-backend/
+├── src/
+│   ├── config/         # DB connection, env validation
+│   ├── middleware/     # auth, error handler, validator
+│   ├── modules/
+│   │   ├── auth/       # login, token logic
+│   │   ├── users/      # user CRUD
+│   │   ├── rooms/      # room management
+│   │   ├── guests/     # guest management
+│   │   ├── bookings/   # booking lifecycle
+│   │   ├── services/   # add-on services
+│   │   ├── bills/      # billing calculation
+│   │   ├── payments/   # payment processing
+│   │   └── reports/    # analytics & export
+│   ├── utils/          # helpers: PDF gen, email, calc
+│   └── app.js          # Express app setup
+├── tests/
+│   ├── unit/
+│   └── integration/
+├── .env.example
+└── package.json
+
+Frontend (React / Vite)
+hotel-billing-frontend/
+├── src/
+│   ├── api/            # Axios instances per module
+│   ├── components/     # Shared UI components
+│   ├── pages/
+│   │   ├── Dashboard/
+│   │   ├── Rooms/
+│   │   ├── Guests/
+│   │   ├── Bookings/
+│   │   ├── Billing/
+│   │   └── Reports/
+│   ├── store/          # Zustand or Redux Toolkit
+│   ├── hooks/          # Custom React hooks
+│   └── main.jsx
+└── package.json
+
+7. Security Checklist & Environment Variables
+
+7.1 Security Checklist
+•	Passwords hashed with bcrypt (salt rounds ≥ 12)
+•	JWT signed with RS256 asymmetric key (not HS256 with shared secret)
+•	All inputs validated with Zod before reaching controller
+•	File uploads: validate mime type and size before Cloudinary/S3
+•	HTTPS enforced in production; HSTS header via helmet
+•	MongoDB injection prevented by Mongoose schema typing
+•	Rate limiting on /auth/login (max 5 attempts per 15 min per IP)
+•	CORS whitelist limited to frontend domain
+•	Sensitive fields (password) excluded from all API responses
+
+7.2 Required Environment Variables
+Variable	Example Value	Description
+PORT	5000	Express server port
+MONGO_URI	mongodb+srv://...	MongoDB Atlas connection string
+JWT_SECRET	randomly generated 64-char hex	JWT signing secret
+JWT_EXPIRES_IN	7d	Token expiry duration
+CLOUDINARY_CLOUD_NAME	your-cloud	Cloudinary account name
+CLOUDINARY_API_KEY	123456789	Cloudinary API key
+CLOUDINARY_API_SECRET	abc123...	Cloudinary API secret
+RAZORPAY_KEY_ID	rzp_live_...	Razorpay live key ID
+RAZORPAY_KEY_SECRET	...	Razorpay secret
+SMTP_HOST	smtp.gmail.com	Email server host
+SMTP_USER	hotel@example.com	SMTP login email
+SMTP_PASS	app-password	SMTP password or app password
+TWILIO_SID	ACxxxxxxxx	Twilio Account SID
+TWILIO_TOKEN	auth-token	Twilio auth token
+TWILIO_PHONE	+1234567890	Twilio sender phone number
+CLIENT_URL	https://hotel.example.com	Frontend URL for CORS
+
+8. Testing Strategy
+
+8.1 Unit Tests (Jest)
+•	Bill calculation utility: test all combinations of room/service/tax/discount
+•	Booking status machine: valid and invalid transitions
+•	Zod schema validators: valid inputs, missing fields, wrong types
+•	Date utility functions: nights calculation, late checkout surcharge
+
+8.2 Integration Tests (Supertest)
+•	Full booking lifecycle: create → check-in → add services → checkout → pay
+•	Auth flow: login, token expiry, role guard rejection
+•	Payment flow: partial payment, second payment, overpayment guard
+•	Room availability: concurrent booking conflict detection
+
+8.3 End-to-End Tests (Playwright)
+•	Receptionist walk-in flow in browser
+•	Bill generation and PDF download
+•	Manager applies discount and views revenue report
+
+9. Deployment Guide
+
+Environment	Backend	Frontend	Database
+Development	nodemon localhost:5000	vite dev localhost:3000	Local MongoDB or Atlas free tier
+Staging	Docker on Railway / Render	Vercel preview deploy	Atlas M0 shared cluster
+Production	Docker on AWS EC2 / Fly.io	Vercel / Netlify	Atlas M10+ dedicated cluster
+
+9.1 Docker Setup
+# Build backend image
+docker build -t hotel-billing-api ./backend
+
+# Run with environment file
+docker run --env-file .env -p 5000:5000 hotel-billing-api
+
+# docker-compose for local full-stack
+docker-compose up --build
+
+9.2 GitHub Actions CI/CD
+•	On push to main: run Jest tests → build Docker image → push to registry
+•	On release tag: deploy to production via SSH or platform CLI
+•	PR checks: lint (ESLint), type-check (if TypeScript), test suite
+
+Appendix — GST Rate Reference
+Room Tariff (per night)	GST Rate	Note
+< ₹1,000	0%	No GST applicable
+₹1,000 – ₹7,499	12%	Standard hotel room GST slab
+≥ ₹7,500	18%	Luxury and suite category
+Restaurant (hotel)	5%	Food & beverages (no ITC)
+Spa / Wellness	18%	Spa and salon services
+
+	Note: GST rates are subject to change. Always verify the current slabs from the GST Council notification.
+Invoice must include: GSTIN of hotel, HSN/SAC code, tax breakup (CGST + SGST or IGST), and sequential invoice number.
+

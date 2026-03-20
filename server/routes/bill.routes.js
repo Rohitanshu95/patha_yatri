@@ -1,12 +1,16 @@
-const express = require('express');
+import express from "express";
+import { authenticate, authorize } from "../middleware/auth.js";
+import { getBill, getInvoicePDF, applyDiscount } from "../controllers/bill.controller.js";
+
 const router = express.Router();
-const { authenticate, authorize } = require('../middleware/auth');
 
-const RECEPTIONIST_PLUS = ['receptionist', 'manager', 'admin'];
-const MANAGER_PLUS = ['manager', 'admin'];
+const RECEPTIONIST_PLUS = ["receptionist", "manager", "admin"];
+const MANAGER_PLUS = ["manager", "admin"];
 
-router.get('/:bookingId', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Get current bill for a booking' }));
-router.patch('/:id/discount', authenticate, authorize(...MANAGER_PLUS), (req, res) => res.json({ msg: 'Apply discount' }));
-router.get('/:id/invoice', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Download PDF invoice' }));
+router.use(authenticate);
 
-module.exports = router;
+router.get("/booking/:bookingId", authorize(...RECEPTIONIST_PLUS), getBill);
+router.get("/:id/invoice", authorize(...RECEPTIONIST_PLUS), getInvoicePDF);
+router.patch("/:id/discount", authorize(...MANAGER_PLUS), applyDiscount);
+
+export default router;

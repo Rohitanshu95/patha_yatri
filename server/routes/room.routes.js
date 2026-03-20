@@ -1,15 +1,35 @@
-const express = require('express');
+import express from "express";
+import { authenticate, authorize } from "../middleware/auth.js";
+import { upload } from "../middleware/upload.js";
+import { 
+  createRoom, 
+  listRooms, 
+  getRoom, 
+  updateRoom, 
+  changeRoomStatus, 
+  getAvailableRooms 
+} from "../controllers/room.controller.js";
+
 const router = express.Router();
-const { authenticate, authorize } = require('../middleware/auth');
 
-const RECEPTIONIST_PLUS = ['receptionist', 'manager', 'admin'];
-const ADMIN_ONLY = ['admin'];
+const RECEPTIONIST_PLUS = ["receptionist", "manager", "admin"];
+const ADMIN_MANAGER = ["admin", "manager"];
 
-router.get('/available', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Check available rooms' }));
-router.get('/', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'List all rooms' }));
-router.get('/:id', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Get single room details' }));
-router.post('/', authenticate, authorize(...ADMIN_ONLY), (req, res) => res.json({ msg: 'Create room' }));
-router.put('/:id', authenticate, authorize(...ADMIN_ONLY), (req, res) => res.json({ msg: 'Update room properties' }));
-router.patch('/:id/status', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Change room status' }));
+router.get(
+  "/available",
+  authenticate,
+  authorize(...RECEPTIONIST_PLUS),
+  getAvailableRooms
+);
+router.get("/", authenticate, authorize(...RECEPTIONIST_PLUS), listRooms);
+router.get("/:id", authenticate, authorize(...RECEPTIONIST_PLUS), getRoom);
+router.post("/", authenticate, authorize(...ADMIN_MANAGER), upload.array("images", 5), createRoom);
+router.put("/:id", authenticate, authorize(...ADMIN_MANAGER), upload.array("images", 5), updateRoom);
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize(...RECEPTIONIST_PLUS),
+  changeRoomStatus
+);
 
-module.exports = router;
+export default router;

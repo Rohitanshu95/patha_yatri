@@ -2,13 +2,14 @@ import React from 'react'
 import useAuthStore from '../../store/authStore';
 import ManagerDashboard from '../Manager/ManagerDashboard';
 import ReceptionistDashboard from '../Receptionist/ReceptionistDashboard';
+import AdminDashboard from '../Admin/AdminDashboard';
 
 const Dashboard = () => {
   const { user } = useAuthStore();
 
   if (user?.role === "admin") {
     return <AdminDashboard />;
-  }
+  } 
 
   if (user?.role === "manager") {
     return <ManagerDashboard />;

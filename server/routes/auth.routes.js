@@ -1,9 +1,14 @@
-const express = require('express');
+import express from "express";
+import { authenticate } from "../middleware/auth.js";
+import { login, logout, me } from "../controllers/auth.controller.js";
+import { validate } from "../middleware/validate.js";
+import { loginSchema } from "../validators/auth.validator.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
+
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
 
-router.post('/login', (req, res) => res.json({ msg: 'Login logic' }));
-router.post('/logout', authenticate, (req, res) => res.json({ msg: 'Logout logic' }));
-router.get('/me', authenticate, (req, res) => res.json({ msg: 'Current user', user: req.user }));
+router.post("/login", authLimiter, validate(loginSchema), login);
+router.post("/logout", authenticate, logout);
+router.get("/me", authenticate, me);
 
-module.exports = router;
+export default router;

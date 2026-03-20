@@ -1,17 +1,32 @@
-const express = require('express');
+import express from "express";
+import { authenticate, authorize } from "../middleware/auth.js";
+import { 
+  getAllBookings,
+  getBookingById,
+  updateBooking,
+  createBooking, 
+  checkIn, 
+  checkOut, 
+  cancelBooking, 
+  addService, 
+  removeService 
+} from "../controllers/booking.controller.js";
+
 const router = express.Router();
-const { authenticate, authorize } = require('../middleware/auth');
 
-const RECEPTIONIST_PLUS = ['receptionist', 'manager', 'admin'];
-const MANAGER_PLUS = ['manager', 'admin'];
+const RECEPTIONIST_PLUS = ["receptionist", "manager", "admin"];
+const MANAGER_PLUS = ["manager", "admin"];
 
-router.post('/', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Create booking' }));
-router.get('/', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'List bookings' }));
-router.get('/:id', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Get booking details' }));
-router.patch('/:id/checkin', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Check-in (creates bill)' }));
-router.patch('/:id/checkout', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Check-out (finalizes bill)' }));
-router.patch('/:id/cancel', authenticate, authorize(...MANAGER_PLUS), (req, res) => res.json({ msg: 'Cancel booking' }));
-router.post('/:id/services', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Add service' }));
-router.delete('/:id/services/:sid', authenticate, authorize(...MANAGER_PLUS), (req, res) => res.json({ msg: 'Remove service' }));
+router.use(authenticate);
 
-module.exports = router;
+router.get("/", authorize(...RECEPTIONIST_PLUS), getAllBookings);
+router.get("/:id", authorize(...RECEPTIONIST_PLUS), getBookingById);
+router.post("/", authorize(...RECEPTIONIST_PLUS), createBooking);
+router.patch("/:id", authorize(...RECEPTIONIST_PLUS), updateBooking);
+router.patch("/:id/checkin", authorize(...RECEPTIONIST_PLUS), checkIn);
+router.patch("/:id/checkout", authorize(...RECEPTIONIST_PLUS), checkOut);
+router.patch("/:id/cancel", authorize(...MANAGER_PLUS), cancelBooking);
+router.post("/:id/services", authorize(...RECEPTIONIST_PLUS), addService);
+router.delete("/:id/services/:serviceId", authorize(...MANAGER_PLUS), removeService);
+
+export default router;

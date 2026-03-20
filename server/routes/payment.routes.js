@@ -1,13 +1,23 @@
-const express = require('express');
+import express from "express";
+import { authenticate, authorize } from "../middleware/auth.js";
+import { 
+  recordPayment, 
+  refundPayment, 
+  createRazorpayOrder, 
+  verifyRazorpay 
+} from "../controllers/payment.controller.js";
+
 const router = express.Router();
-const { authenticate, authorize } = require('../middleware/auth');
 
-const RECEPTIONIST_PLUS = ['receptionist', 'manager', 'admin'];
-const MANAGER_PLUS = ['manager', 'admin'];
+const RECEPTIONIST_PLUS = ["receptionist", "manager", "admin"];
+const MANAGER_PLUS = ["manager", "admin"];
 
-router.post('/', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Record manual payment' }));
-router.post('/online/create-order', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Create Razorpay order' }));
-router.post('/online/verify', (req, res) => res.json({ msg: 'Razorpay webhook verify' }));
-router.post('/:id/refund', authenticate, authorize(...MANAGER_PLUS), (req, res) => res.json({ msg: 'Initiate refund' }));
+router.use(authenticate);
 
-module.exports = router;
+router.post("/record", authorize(...RECEPTIONIST_PLUS), recordPayment);
+router.post("/:id/refund", authorize(...MANAGER_PLUS), refundPayment);
+
+router.post("/online/create-order", authorize(...RECEPTIONIST_PLUS), createRazorpayOrder);
+router.post("/online/verify", authorize(...RECEPTIONIST_PLUS), verifyRazorpay);
+
+export default router;

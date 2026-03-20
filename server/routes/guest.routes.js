@@ -1,12 +1,17 @@
-const express = require('express');
+import express from "express";
+import { authenticate, authorize } from "../middleware/auth.js";
+import { upload } from "../middleware/upload.js";
+import { registerGuest, listGuests, getGuest, updateGuest } from "../controllers/guest.controller.js";
+
 const router = express.Router();
-const { authenticate, authorize } = require('../middleware/auth');
 
-const RECEPTIONIST_PLUS = ['receptionist', 'manager', 'admin'];
+const RECEPTIONIST_PLUS = ["receptionist", "manager", "admin"];
 
-router.post('/', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Register new guest' }));
-router.get('/', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Search guests' }));
-router.get('/:id', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Get guest profile' }));
-router.put('/:id', authenticate, authorize(...RECEPTIONIST_PLUS), (req, res) => res.json({ msg: 'Update guest details' }));
+router.use(authenticate, authorize(...RECEPTIONIST_PLUS));
 
-module.exports = router;
+router.post("/", upload.single("id_proof_file"), registerGuest);
+router.get("/", listGuests);
+router.get("/:id", getGuest);
+router.put("/:id", upload.single("id_proof_file"), updateGuest);
+
+export default router;
