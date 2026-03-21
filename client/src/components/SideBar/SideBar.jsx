@@ -1,60 +1,83 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
-import { LayoutDashboard, Users, BedDouble, CalendarDays, ReceiptText, BarChart3, Settings } from "lucide-react";
 
 const SideBar = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const location = useLocation();
 
   if (!user) return null;
 
   const links = {
     admin: [
-      { name: "Dashboard", path: "/app/admin", icon: <LayoutDashboard size={20} /> },
-      { name: "Users", path: "/app/admin/users", icon: <Users size={20} /> },
-      { name: "Audit Logs", path: "/app/admin/audit", icon: <Settings size={20} /> },
+      { name: "Dashboard", path: "/app/admin", icon: "dashboard" },
+      { name: "Users", path: "/app/admin/users", icon: "group" },
+      { name: "Rooms", path: "/app/admin/rooms", icon: "bed" },
+      { name: "Reports", path: "/app/admin/reports", icon: "assessment" },
+      { name: "Audit Logs", path: "/app/admin/audit", icon: "history" },
+      { name: "Settings", path: "/app/admin/settings", icon: "settings" }
     ],
     manager: [
-      { name: "Dashboard", path: "/app/manager", icon: <LayoutDashboard size={20} /> },
-      { name: "Rooms", path: "/app/manager/rooms", icon: <BedDouble size={20} /> },
-      { name: "Reports", path: "/app/manager/reports", icon: <BarChart3 size={20} /> },
+      { name: "Dashboard", path: "/app/manager", icon: "dashboard" },
+      { name: "Rooms", path: "/app/manager/rooms", icon: "bed" },
+      { name: "Reports", path: "/app/manager/reports", icon: "assessment" },
     ],
     receptionist: [
-      { name: "Dashboard", path: "/app/receptionist", icon: <LayoutDashboard size={20} /> },
-      { name: "Bookings", path: "/app/receptionist/bookings", icon: <CalendarDays size={20} /> },
-      { name: "Guests", path: "/app/receptionist/guests", icon: <Users size={20} /> },
-      { name: "Billing", path: "/app/receptionist/billing", icon: <ReceiptText size={20} /> },
+      { name: "Dashboard", path: "/app/receptionist", icon: "dashboard" },
+      { name: "Reservations", path: "/app/receptionist/bookings", icon: "calendar_month" },
+      { name: "Guest Folios", path: "/app/receptionist/guests", icon: "contact_page" },
+      { name: "Housekeeping", path: "/app/receptionist/rooms", icon: "cleaning_services" },
     ]
   };
 
   const navLinks = links[user.role] || [];
 
   return (
-    <div className="w-64 bg-slate-900 h-screen text-gray-300 flex flex-col transition-all">
-      <div className="h-16 flex items-center justify-center border-b border-gray-800 text-white font-bold text-xl tracking-wider">
-        Patha Yatri
+    <aside className="h-screen w-64 flex-shrink-0 bg-surface-container border-r border-outline/15 flex flex-col py-8 z-20">
+      <div className="px-8 mb-12 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-none border border-primary flex items-center justify-center bg-surface">
+          <span className="text-primary font-serif text-lg">PY</span>
+        </div>
+        <div>
+          <h2 className="text-xl font-serif tracking-widest text-on-surface uppercase">Patha Yatri</h2>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-medium">Luxe Management</p>
+        </div>
       </div>
       
-      <nav className="flex-1 py-6 px-3 space-y-2">
+      <nav className="flex-1 space-y-1">
         {navLinks.map((link) => {
-          const isActive = location.pathname === link.path;
+          const isActive = location.pathname.includes(link.path);
           return (
-            <Link
+            <NavLink
               key={link.name}
               to={link.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors \${
-                isActive ? "bg-blue-600 text-white" : "hover:bg-slate-800 hover:text-white"
+              className={`flex items-center gap-4 py-3 px-8 transition-all ${
+                isActive 
+                  ? "text-on-surface font-semibold bg-surface border-r-2 border-primary" 
+                  : "text-on-surface-variant hover:text-on-surface hover:bg-surface-dim"
               }`}
             >
-              {link.icon}
-              <span className="font-medium">{link.name}</span>
-            </Link>
+              <span className={`material-symbols-outlined ${isActive ? "text-primary" : ""}`}>
+                {link.icon}
+              </span>
+              <span className="text-sm tracking-tight">{link.name}</span>
+            </NavLink>
           );
         })}
       </nav>
-    </div>
+
+      <div className="px-8 pt-6 border-t border-outline/15">
+        <button 
+          onClick={logout} 
+          className="w-full flex items-center gap-4 py-3 text-on-surface-variant hover:text-error transition-colors"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          <span className="text-sm tracking-tight">Logout</span>
+        </button>
+      </div>
+    </aside>
   );
 };
 
 export default SideBar;
+

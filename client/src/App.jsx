@@ -12,6 +12,8 @@ import GuestManagement from "./pages/Guests/GuestManagement";
 import Billing from "./pages/Billing/Billing";
 import Reports from "./pages/Reports/Reports";
 import AuditLogs from "./pages/Audit/AuditLogs";
+import SystemSettings from "./pages/Settings/SystemSettings";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 
 const App = () => {
   return (
@@ -26,9 +28,11 @@ const App = () => {
               path="admin"
               element={<RoleRoute allowedRoles={["admin"]} />}
             >
-              <Route index element={<Dashboard />} />
+              <Route index element={<AdminDashboard />} />
               <Route path="users" element={<UserManagement />} />
+              <Route path="rooms" element={<RoomManagement />} />
               <Route path="audit" element={<AuditLogs />} />
+              <Route path="settings" element={<SystemSettings />} />
             </Route>
             {/* manager */}
             <Route

@@ -10,6 +10,7 @@ export const useBookingStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const res = await axiosInstance.get("/bookings");
+      console.log(res.data)
       set({ bookings: res.data, isLoading: false });
     } catch (error) {
       set({ error: error.message, isLoading: false });

@@ -1,5 +1,6 @@
-import Room from "../models/Room.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
+import mongoose from "mongoose";
+import Room from "../models/Room.js";
 
 export const createRoom = async (req, res, next) => {
   try {
@@ -35,12 +36,70 @@ export const createRoom = async (req, res, next) => {
 
 export const listRooms = async (req, res, next) => {
   try {
-    const filter = {};
-    if (req.query.category) filter.room_category = req.query.category;
-    if (req.query.status) filter.availability = req.query.status;
+    const { 
+      page = 1, 
+      limit = 10, 
+      search = "", 
+      category, 
+      status, 
+      minPrice, 
+      maxPrice 
+    } = req.query;
 
-    const rooms = await Room.find(filter).lean();
-    res.json(rooms);
+    const query = {};
+
+    // Search filter
+    if (search) {
+      query.$or = [
+        { room_number: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Exact matches
+    if (category && category !== "all") query.room_category = category;
+    if (status && status !== "all") query.availability = status;
+
+    // Price range
+    if (minPrice || maxPrice) {
+      query["price.per_night"] = {};
+      if (minPrice) query["price.per_night"].$gte = Number(minPrice);
+      if (maxPrice) query["price.per_night"].$lte = Number(maxPrice);
+    }
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const total = await Room.countDocuments(query);
+    const rooms = await Room.find(query)
+      .skip(skip)
+      .limit(limitNumber)
+      .lean();
+
+    // Attach active guest info for occupied rooms
+    const populatedRooms = await Promise.all(rooms.map(async (room) => {
+      if (room.availability === "occupied") {
+        const activeBooking = await mongoose.model('Booking').findOne({
+          room_id: room._id,
+          status: "checked-in"
+        }).populate('guest_id', 'name').lean();
+
+        if (activeBooking && activeBooking.guest_id) {
+          return { ...room, currentGuestName: activeBooking.guest_id.name };
+        }
+      }
+      return room;
+    }));
+
+    res.json({
+      data: populatedRooms,
+      pagination: {
+        total,
+        page: pageNumber,
+        pages: Math.ceil(total / limitNumber),
+      }
+    });
   } catch (error) {
     next(error);
   }
