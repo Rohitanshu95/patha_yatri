@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
+import { showError, showSuccess } from "../utils/toast";
 
 export const useReceptionistStore = create((set, get) => ({
   dashboardData: {
@@ -22,6 +23,7 @@ export const useReceptionistStore = create((set, get) => ({
       const res = await axiosInstance.get("/dashboard/receptionist");
       set({ dashboardData: res.data, isLoading: false });
     } catch (error) {
+      showError(error, "Failed to fetch dashboard data");
       set({ 
         error: error.response?.data?.message || error.message, 
         isLoading: false 
@@ -35,8 +37,10 @@ export const useReceptionistStore = create((set, get) => ({
     try {
       await axiosInstance.patch(`/bookings/${id}/checkin`);
       get().fetchDashboardData(); // Refresh data after action
+      showSuccess(null, "Check-in successful");
       return true;
     } catch (error) {
+      showError(error, "Check-in failed");
       set({ error: error.response?.data?.message || error.message });
       return false;
     }
@@ -46,8 +50,10 @@ export const useReceptionistStore = create((set, get) => ({
     try {
       await axiosInstance.patch(`/bookings/${id}/checkout`);
       get().fetchDashboardData(); // Refresh data after action
+      showSuccess(null, "Check-out successful");
       return true;
     } catch (error) {
+      showError(error, "Check-out failed");
       set({ error: error.response?.data?.message || error.message });
       return false;
     }

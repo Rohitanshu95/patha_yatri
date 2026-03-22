@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
+import { showError, showSuccess } from "../utils/toast";
 
 export const useRoomStore = create((set, get) => ({
   rooms: [],
@@ -25,6 +26,7 @@ export const useRoomStore = create((set, get) => ({
         set({ rooms: res.data, isLoading: false });
       }
     } catch (error) {
+      showError(error, "Failed to fetch rooms");
       set({ error: error.message, isLoading: false });
     }
   },
@@ -35,8 +37,10 @@ export const useRoomStore = create((set, get) => ({
         headers: { "Content-Type": "multipart/form-data" }
       });
       set((state) => ({ rooms: [...state.rooms, res.data] }));
+      showSuccess(res.data?.message, "Room created");
       return true;
     } catch (error) {
+      showError(error, "Failed to create room");
       set({ error: error.message });
       return false;
     }

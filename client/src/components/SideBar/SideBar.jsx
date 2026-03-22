@@ -25,6 +25,8 @@ const SideBar = () => {
     receptionist: [
       { name: "Dashboard", path: "/app/receptionist", icon: "dashboard" },
       { name: "Reservations", path: "/app/receptionist/bookings", icon: "calendar_month" },
+      { name:"Rooms", path: "/app/receptionist/rooms", icon: "bed"  },
+      {name: "Billing", path: "/app/receptionist/billing", icon: "receipt_long" },
       { name: "Guest Folios", path: "/app/receptionist/guests", icon: "contact_page" },
       { name: "Housekeeping", path: "/app/receptionist/rooms", icon: "cleaning_services" },
     ]

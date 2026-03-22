@@ -10,14 +10,18 @@ import Booking from "./pages/Booking/Booking";
 import RoomManagement from "./pages/Rooms/RoomManagement";
 import GuestManagement from "./pages/Guests/GuestManagement";
 import Billing from "./pages/Billing/Billing";
+import BillingDetail from "./pages/Billing/BillingDetail";
 import Reports from "./pages/Reports/Reports";
 import AuditLogs from "./pages/Audit/AuditLogs";
 import SystemSettings from "./pages/Settings/SystemSettings";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import BookingDetails from "./pages/Booking/BookingDetails";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (
     <div className="h-screen w-full">
+      <ToastContainer />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth/login" element={<Login />} />
@@ -31,6 +35,7 @@ const App = () => {
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="rooms" element={<RoomManagement />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="audit" element={<AuditLogs />} />
               <Route path="settings" element={<SystemSettings />} />
             </Route>
@@ -51,8 +56,11 @@ const App = () => {
             >
               <Route index element={<Dashboard />} />
               <Route path="guests" element={<GuestManagement />} />
+              <Route path="rooms" element={<RoomManagement />} />
               <Route path="bookings" element={<Booking />} />
+              <Route path="bookings/:id" element={<BookingDetails />} />
               <Route path="billing" element={<Billing />} />
+              <Route path="billing/:bookingId" element={<BillingDetail />} />
             </Route>
           </Route>
         </Route>

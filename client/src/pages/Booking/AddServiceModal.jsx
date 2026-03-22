@@ -1,24 +1,33 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
-export default function AddServiceModal({ isOpen, onClose }) {
+const serviceCatalog = {
+  food: [
+    { id: 'dinner-buffet', name: 'Dinner Buffet', desc: 'Premium Dining Service', type: 'food', unit_price: 450 },
+    { id: 'breakfast-bed', name: 'Breakfast in Bed', desc: 'Signature morning delivery', type: 'food', unit_price: 300 },
+    { id: 'minibar', name: 'Minibar Auto-charge', desc: 'Standard restock', type: 'food', unit_price: 150 },
+    { id: 'late-night-snacks', name: 'Late Night Snacks', desc: 'Service available till 3 AM', type: 'food', unit_price: 250 },
+  ],
+  laundry: [
+    { id: 'laundry-standard', name: 'Express Laundry', desc: 'Same-day wash and fold', type: 'laundry', unit_price: 180 },
+    { id: 'laundry-press', name: 'Garment Press', desc: 'Steam press per item', type: 'laundry', unit_price: 120 },
+  ],
+  spa: [
+    { id: 'spa-massage', name: 'Deep Tissue Massage', desc: '60 minute session', type: 'spa', unit_price: 1200 },
+    { id: 'spa-facial', name: 'Signature Facial', desc: '45 minute session', type: 'spa', unit_price: 900 },
+  ],
+  transport: [
+    { id: 'transport-airport', name: 'Airport Transfer', desc: 'Sedan pickup or drop', type: 'transport', unit_price: 900 },
+  ],
+  other: [
+    { id: 'other-floral', name: 'Floral Arrangement', desc: 'Custom in-room setup', type: 'other', unit_price: 700 },
+  ],
+};
+
+export default function AddServiceModal({ isOpen, onClose, onSubmit, booking }) {
   const [activeTab, setActiveTab] = useState('food');
-  const [selectedServices, setSelectedServices] = useState({
-    'dinner-buffet': 2,
-    'late-night-snacks': 1,
-  });
+  const [selectedServices, setSelectedServices] = useState({});
 
-  const services = {
-    food: [
-      { id: 'dinner-buffet', name: 'Dinner Buffet', desc: 'Premium Dining Service — ₹450' },
-      { id: 'breakfast-bed', name: 'Breakfast in Bed', desc: 'Signature morning delivery — ₹300' },
-      { id: 'minibar', name: 'Minibar Auto-charge', desc: 'Standard restock — ₹150' },
-      { id: 'late-night-snacks', name: 'Late Night Snacks', desc: 'Service available till 3 AM — ₹250' },
-    ],
-    laundry: [],
-    spa: [],
-    transport: [],
-    other: [],
-  };
+  const services = serviceCatalog;
 
   const tabs = [
     { id: 'food', label: 'Food & Beverage' },
@@ -42,10 +51,30 @@ export default function AddServiceModal({ isOpen, onClose }) {
     }));
   };
 
+  const allServices = useMemo(() => Object.values(services).flat(), [services]);
+
   const totalAmount = Object.entries(selectedServices).reduce((sum, [id, qty]) => {
-    const prices = { 'dinner-buffet': 450, 'breakfast-bed': 300, 'minibar': 150, 'late-night-snacks': 250 };
-    return sum + ((prices[id] || 0) * qty);
+    const service = allServices.find((item) => item.id === id);
+    return sum + ((service?.unit_price || 0) * qty);
   }, 0);
+
+  const hasSelection = Object.values(selectedServices).some((qty) => qty > 0);
+
+  const handleAddToBill = () => {
+    if (!onSubmit) return;
+    const selectedItems = allServices
+      .filter((item) => (selectedServices[item.id] || 0) > 0)
+      .map((item) => ({
+        name: item.name,
+        type: item.type,
+        unit_price: item.unit_price,
+        quantity: selectedServices[item.id],
+        description: item.desc,
+      }));
+
+    if (selectedItems.length === 0) return;
+    onSubmit(selectedItems);
+  };
 
   if (!isOpen) return null;
 
@@ -61,7 +90,7 @@ export default function AddServiceModal({ isOpen, onClose }) {
             </button>
           </div>
           <p className="text-[#777777] text-xs font-semibold tracking-widest uppercase">
-            Folio: <span className="text-[#C5A059]">PY-2026-0087</span> | Room 302 — Amit Kumar
+            Folio: <span className="text-[#C5A059]">{booking?.bill_id?.invoice_number || 'Pending'}</span> | Room {booking?.room_id?.room_number || '—'} — {booking?.guest_id?.name || 'Guest'}
           </p>
         </div>
 
@@ -115,7 +144,7 @@ export default function AddServiceModal({ isOpen, onClose }) {
                       </button>
                       <div>
                         <h4 className="font-bold text-[#222222] text-sm uppercase tracking-wider">{service.name}</h4>
-                        <p className="text-[11px] text-[#777777] mt-0.5">{service.desc}</p>
+                        <p className="text-[11px] text-[#777777] mt-0.5">{service.desc} — ₹{service.unit_price}</p>
                       </div>
                     </div>
                     {selectedServices[service.id] > 0 && (
@@ -139,6 +168,11 @@ export default function AddServiceModal({ isOpen, onClose }) {
                     )}
                   </div>
                 ))}
+                {services[activeTab].length === 0 && (
+                  <div className="text-center text-[#777777] text-sm py-10">
+                    No services available in this category.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -165,7 +199,11 @@ export default function AddServiceModal({ isOpen, onClose }) {
             >
               Cancel
             </button>
-            <button className="px-10 py-4 bg-[#C5A059] text-white text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg shadow-[#C5A059]/10 flex items-center gap-3 hover:bg-[#B38D45] active:scale-95 transition-all">
+            <button
+              onClick={handleAddToBill}
+              disabled={!hasSelection}
+              className="px-10 py-4 bg-[#C5A059] text-white text-[11px] font-bold uppercase tracking-[0.2em] shadow-lg shadow-[#C5A059]/10 flex items-center gap-3 hover:bg-[#B38D45] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Add to Bill
               <span className="material-symbols-outlined text-lg">arrow_forward</span>
             </button>

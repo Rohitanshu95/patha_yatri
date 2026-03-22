@@ -2,6 +2,7 @@ import express from "express";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { 
   recordPayment, 
+  listPayments,
   refundPayment, 
   createRazorpayOrder, 
   verifyRazorpay 
@@ -14,6 +15,7 @@ const MANAGER_PLUS = ["manager", "admin"];
 
 router.use(authenticate);
 
+router.get("/", authorize(...RECEPTIONIST_PLUS), listPayments);
 router.post("/record", authorize(...RECEPTIONIST_PLUS), recordPayment);
 router.post("/:id/refund", authorize(...MANAGER_PLUS), refundPayment);
 

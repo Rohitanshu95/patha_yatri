@@ -27,6 +27,6 @@ router.patch("/:id/checkin", authorize(...RECEPTIONIST_PLUS), checkIn);
 router.patch("/:id/checkout", authorize(...RECEPTIONIST_PLUS), checkOut);
 router.patch("/:id/cancel", authorize(...MANAGER_PLUS), cancelBooking);
 router.post("/:id/services", authorize(...RECEPTIONIST_PLUS), addService);
-router.delete("/:id/services/:serviceId", authorize(...MANAGER_PLUS), removeService);
+router.delete("/:id/services/:serviceId", authorize(...RECEPTIONIST_PLUS), removeService);
 
 export default router;

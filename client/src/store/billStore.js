@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
+import { showError, showSuccess } from "../utils/toast";
 
 export const useBillStore = create((set) => ({
   bills: [],
+  payments: [],
   isLoading: false,
   error: null,
   
@@ -12,7 +14,39 @@ export const useBillStore = create((set) => ({
       const res = await axiosInstance.get("/bills");
       set({ bills: res.data, isLoading: false });
     } catch (error) {
+      showError(error, "Failed to fetch bills");
       set({ error: error.message, isLoading: false });
+    }
+  },
+
+  fetchBillByBooking: async (bookingId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await axiosInstance.get(`/bills/booking/${bookingId}`);
+      set({ isLoading: false });
+      return res.data;
+    } catch (error) {
+      showError(error, "Failed to fetch bill");
+      set({ error: error.message, isLoading: false });
+      return null;
+    }
+  },
+
+  fetchPayments: async ({ billId, bookingId } = {}) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await axiosInstance.get("/payments", {
+        params: {
+          ...(billId ? { billId } : {}),
+          ...(bookingId ? { bookingId } : {}),
+        },
+      });
+      set({ payments: res.data, isLoading: false });
+      return res.data;
+    } catch (error) {
+      showError(error, "Failed to fetch payments");
+      set({ error: error.message, isLoading: false });
+      return null;
     }
   },
 
@@ -27,8 +61,10 @@ export const useBillStore = create((set) => ({
         }
         return { bills: [res.data, ...state.bills], isLoading: false };
       });
+      showSuccess(res.data?.message, "Bill generated");
       return res.data;
     } catch (error) {
+      showError(error, "Failed to generate bill");
       set({ error: error.message, isLoading: false });
       return null;
     }
@@ -50,10 +86,30 @@ export const useBillStore = create((set) => ({
         bills: state.bills.map((b) => b._id === billId ? res.data.bill : b),
         isLoading: false
       }));
+      showSuccess(res.data?.message, "Payment recorded");
       return res.data;
     } catch (error) {
+       showError(error, "Payment failed");
        set({ error: error.message, isLoading: false });
        return null;
+    }
+  },
+
+  applyDiscount: async (billId, discountData) => {
+    try {
+      set({ isLoading: true });
+      const payload = { discount: discountData };
+      const res = await axiosInstance.patch(`/bills/${billId}/discount`, payload);
+      set((state) => ({
+        bills: state.bills.map((b) => b._id === billId ? res.data : b),
+        isLoading: false,
+      }));
+      showSuccess(res.data?.message, "Discount applied");
+      return res.data;
+    } catch (error) {
+      showError(error, "Failed to apply discount");
+      set({ error: error.message, isLoading: false });
+      return null;
     }
   },
 
@@ -68,6 +124,7 @@ export const useBillStore = create((set) => ({
        link.click();
        link.remove();
      } catch (error) {
+       showError(error, "Invoice download failed");
        console.error("PDF download failed", error);
      }
   }
