@@ -7,6 +7,7 @@ import Room from "../models/Room.js";
 import Service from "../models/Service.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import { calculateBill } from "../utils/billCalculator.js";
+import { sendBookingMail, sendInvoiceMail } from "../utils/mail.js";
 
 const getBillStatus = (totalAmount, amountPaid) => {
   if (totalAmount > 0 && amountPaid >= totalAmount) return "paid";

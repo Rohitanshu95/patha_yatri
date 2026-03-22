@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Grand Elysium — Billing #PY-2026-0087</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#C5A059", // Muted Gold
+              "on-primary": "#FFFFFF",
+              "background": "#FFFFFF", // Pure White
+              "surface": "#FFFFFF",
+              "surface-container": "#F8F9FA", // Off-White
+              "surface-container-low": "#F8F9FA",
+              "surface-container-high": "#EDEEEF",
+              "on-background": "#222222", // Soft Black
+              "on-surface": "#222222",
+              "on-surface-variant": "#777777", // Medium Gray
+              "outline": "#D1C5B4",
+              "outline-variant": "#EDEEEF",
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      body {
+        background-color: #FFFFFF;
+        color: #222222;
+        font-family: 'Inter', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .font-serif { font-family: 'Playfair Display', serif; }
+      .letter-spacing-luxury { letter-spacing: 0.1em; }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- SideNavBar (Based on COMPONENTS_40) -->
+<nav class="fixed left-0 top-0 h-full w-64 z-40 bg-[#F8F9FA] flex flex-col border-r border-[#D1C5B4]/15 hidden md:flex py-8">
+<div class="px-8 mb-10">
+<h1 class="text-xl font-serif tracking-widest text-[#222222] uppercase">Grand Elysium</h1>
+<p class="text-[10px] text-[#C5A059] font-medium uppercase tracking-[0.2em] mt-1">Premium Management</p>
+</div>
+<div class="flex-1 space-y-1">
+<a class="flex items-center gap-4 text-[#777777] px-8 py-3 hover:bg-[#EDEEEF] transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="font-label text-sm tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] px-8 py-3 hover:bg-[#EDEEEF] transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="calendar_month">calendar_month</span>
+<span class="font-label text-sm tracking-tight">Reservations</span>
+</a>
+<!-- ACTIVE TAB: Billing (Guest Folios) -->
+<a class="flex items-center gap-4 text-[#222222] font-semibold bg-white border-r-2 border-[#C5A059] px-8 py-3 shadow-sm transition-all" href="#">
+<span class="material-symbols-outlined text-xl text-[#C5A059]" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-label text-sm tracking-tight">Guest Folios</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] px-8 py-3 hover:bg-[#EDEEEF] transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="cleaning_services">cleaning_services</span>
+<span class="font-label text-sm tracking-tight">Housekeeping</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] px-8 py-3 hover:bg-[#EDEEEF] transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="analytics">analytics</span>
+<span class="font-label text-sm tracking-tight">Analytics</span>
+</a>
+</div>
+<div class="mt-auto space-y-1">
+<a class="flex items-center gap-4 text-[#777777] px-8 py-3 hover:text-[#222222] transition-colors duration-300" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="help_outline">help_outline</span>
+<span class="font-label text-sm tracking-tight">Support</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] px-8 py-3 hover:text-[#222222] transition-colors duration-300" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="logout">logout</span>
+<span class="font-label text-sm tracking-tight">Logout</span>
+</a>
+</div>
+</nav>
+<!-- TopNavBar (Based on COMPONENTS_40) -->
+<header class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-[#D1C5B4]/15 flex justify-between items-center px-8 h-20 md:pl-72">
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#777777]">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+</span>
+<input class="bg-[#F8F9FA] border-none rounded-none py-2 pl-10 pr-4 text-xs focus:ring-1 focus:ring-[#C5A059]/40 w-64 transition-all uppercase tracking-widest" placeholder="SEARCH BILLING..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors duration-300">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors duration-300">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-10 w-10 bg-[#EDEEEF] flex items-center justify-center border border-[#D1C5B4]/30 overflow-hidden">
+<img alt="Executive Manager Profile" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs3oC8nz5rZjOo3FSWyLP-eDx9wK6OYdHc3eHZf9Tmumk3Xx4G6RYedo9gvV5x7cDX6XWQ0FNBeTzNcv04gWVm_vYjh9UZpDZaN8TAkybKAqRgynciIoR-VT5fG0gNQhjUre8EGaWT0Nwg0tx73_nGe_yAHTJqaEdIMI7U5IpHCzqGlibkWkx-cZ5TGbjzn1ZEL0ShI5O1s5Zo_w0LsMeI0fNkRMUGc1nHL5u5yhFisJYSYO3ZAvwKRLl0eMy_fKpC-azyDjcGVEM"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="pt-28 pb-12 px-8 md:ml-64 min-h-screen">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<button class="flex items-center gap-2 text-[#C5A059] text-[10px] font-bold uppercase tracking-[0.2em] mb-3 hover:translate-x-[-4px] transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="arrow_back">arrow_back</span>
+                Back to Bookings
+            </button>
+<h2 class="text-3xl font-serif text-[#222222]">Billing — Booking #PY-2026-0087</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-3 border border-[#D1C5B4] text-[10px] font-bold uppercase tracking-[0.15em] text-[#222222] hover:bg-[#F8F9FA] transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="mail">mail</span>
+                Email Invoice
+            </button>
+<button class="px-6 py-3 bg-[#C5A059] text-[10px] font-bold uppercase tracking-[0.15em] text-white hover:brightness-105 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="download">download</span>
+                Download PDF
+            </button>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-10">
+<!-- LEFT COLUMN: INVOICE -->
+<div class="lg:col-span-7 space-y-8">
+<div class="bg-white border border-[#D1C5B4]/30 shadow-sm p-12">
+<!-- Hotel Info & Brand -->
+<div class="flex justify-between items-start mb-16">
+<div>
+<h3 class="text-2xl font-serif text-[#C5A059] mb-4 uppercase tracking-widest">Grand Elysium Hotel</h3>
+<p class="text-xs text-[#777777] max-w-xs leading-relaxed uppercase tracking-wider">
+                            123 Luxury Lane, Bhubaneswar, Odisha — 751001<br/>
+                            GSTIN: 21AAAAA0000A1Z5
+                        </p>
+</div>
+<div class="text-right">
+<span class="text-[10px] uppercase tracking-[0.2em] text-[#777777] font-bold block mb-2">Invoice Number</span>
+<p class="text-xl font-serif text-[#222222]">INV-PY-2026-0087</p>
+</div>
+</div>
+<!-- Guest & Stay Info -->
+<div class="grid grid-cols-2 gap-12 mb-16 border-y border-[#D1C5B4]/20 py-10">
+<div>
+<span class="text-[10px] uppercase tracking-[0.2em] text-[#C5A059] font-bold block mb-4">Guest Information</span>
+<p class="text-lg font-serif text-[#222222] mb-1">Amit Kumar</p>
+<p class="text-xs text-[#777777] uppercase tracking-wider">Deluxe Room — Room 402</p>
+</div>
+<div>
+<span class="text-[10px] uppercase tracking-[0.2em] text-[#C5A059] font-bold block mb-4">Stay Details</span>
+<p class="text-sm text-[#222222] font-medium mb-1">Oct 12 — Oct 15, 2026</p>
+<p class="text-xs text-[#777777] uppercase tracking-wider">3 Nights • 2 Adults</p>
+</div>
+</div>
+<!-- Table -->
+<div class="mb-12">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] uppercase tracking-[0.2em] text-[#777777] border-b border-[#D1C5B4]/40">
+<th class="pb-4 font-bold">Description</th>
+<th class="pb-4 text-center font-bold">Qty</th>
+<th class="pb-4 text-right font-bold">Unit Price</th>
+<th class="pb-4 text-right font-bold">Amount</th>
+</tr>
+</thead>
+<tbody class="text-sm">
+<tr class="border-b border-[#F8F9FA]">
+<td class="py-6 text-[#222222] font-medium">Room Charges (Deluxe Room)</td>
+<td class="py-6 text-center text-[#777777]">3</td>
+<td class="py-6 text-right text-[#777777]">₹3,500</td>
+<td class="py-6 text-right text-[#222222] font-semibold">₹10,500</td>
+</tr>
+<tr class="border-b border-[#F8F9FA]">
+<td class="py-6 text-[#222222] font-medium">Dinner Buffet</td>
+<td class="py-6 text-center text-[#777777]">2</td>
+<td class="py-6 text-right text-[#777777]">₹450</td>
+<td class="py-6 text-right text-[#222222] font-semibold">₹900</td>
+</tr>
+<tr class="border-b border-[#F8F9FA]">
+<td class="py-6 text-[#222222] font-medium">Laundry Service</td>
+<td class="py-6 text-center text-[#777777]">1</td>
+<td class="py-6 text-right text-[#777777]">₹300</td>
+<td class="py-6 text-right text-[#222222] font-semibold">₹300</td>
+</tr>
+<tr class="border-b border-[#F8F9FA]">
+<td class="py-6 text-[#222222] font-medium">Spa Treatment</td>
+<td class="py-6 text-center text-[#777777]">1</td>
+<td class="py-6 text-right text-[#777777]">₹1,500</td>
+<td class="py-6 text-right text-[#222222] font-semibold">₹1,500</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Summary -->
+<div class="flex flex-col items-end gap-4 pt-10">
+<div class="flex justify-between w-64 text-xs text-[#777777] uppercase tracking-widest">
+<span>Subtotal</span>
+<span class="font-bold text-[#222222]">₹13,200</span>
+</div>
+<div class="flex justify-between w-64 text-xs text-[#777777] uppercase tracking-widest">
+<span>GST (12%)</span>
+<span class="font-bold text-[#222222]">₹1,584</span>
+</div>
+<div class="flex justify-between w-64 text-xs text-[#C5A059] uppercase tracking-widest font-bold">
+<span>Loyalty Discount</span>
+<span>-₹500</span>
+</div>
+<div class="h-px w-64 bg-[#D1C5B4]/20 my-2"></div>
+<div class="flex justify-between w-72">
+<span class="text-xs font-bold text-[#222222] uppercase tracking-[0.2em]">Total Due</span>
+<span class="text-2xl font-serif text-[#222222]">₹14,284</span>
+</div>
+<div class="flex justify-between w-72 text-xs text-[#777777] uppercase tracking-widest">
+<span>Amount Paid</span>
+<span class="font-bold">₹10,000</span>
+</div>
+<div class="flex justify-between w-72 mt-4 bg-[#F8F9FA] p-4 border-l-4 border-[#C5A059]">
+<span class="text-[10px] font-bold text-[#777777] uppercase tracking-[0.2em]">Balance Due</span>
+<span class="text-xl font-serif text-[#C5A059]">₹4,284</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: ACTIONS -->
+<div class="lg:col-span-3 space-y-8">
+<!-- Payment Status -->
+<div class="bg-[#F8F9FA] border border-[#D1C5B4]/15 p-8">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-[10px] font-bold text-[#222222] uppercase tracking-[0.2em]">Payment Status</h4>
+<span class="px-3 py-1 text-[9px] font-bold uppercase tracking-[0.2em] bg-white border border-[#C5A059] text-[#C5A059]">PARTIAL</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between text-[10px] uppercase tracking-widest text-[#777777]">
+<span>Total Bill</span>
+<span class="text-[#222222] font-bold">₹14,284</span>
+</div>
+<div class="flex justify-between text-[10px] uppercase tracking-widest text-[#777777]">
+<span>Received</span>
+<span class="text-[#C5A059] font-bold">₹10,000</span>
+</div>
+<div class="w-full bg-[#EDEEEF] h-1">
+<div class="bg-[#C5A059] h-full w-[70%]"></div>
+</div>
+<p class="text-[9px] text-[#777777] text-center italic tracking-wider">70% of total amount cleared</p>
+</div>
+</div>
+<!-- Record Payment -->
+<div class="bg-white border border-[#D1C5B4]/30 p-8">
+<h4 class="text-[10px] font-bold text-[#222222] uppercase tracking-[0.2em] mb-8">Record Payment</h4>
+<div class="flex gap-px bg-[#EDEEEF] border border-[#EDEEEF] mb-8">
+<button class="flex-1 py-3 text-[9px] font-bold uppercase tracking-widest bg-white text-[#C5A059]">Cash</button>
+<button class="flex-1 py-3 text-[9px] font-bold uppercase tracking-widest bg-[#F8F9FA] text-[#777777] hover:text-[#222222] transition-colors">Card</button>
+<button class="flex-1 py-3 text-[9px] font-bold uppercase tracking-widest bg-[#F8F9FA] text-[#777777] hover:text-[#222222] transition-colors">UPI</button>
+</div>
+<div class="space-y-6 mb-8">
+<div>
+<label class="text-[9px] uppercase font-bold text-[#777777] tracking-[0.2em] block mb-2">Amount (₹)</label>
+<input class="w-full bg-[#F8F9FA] border-b border-[#D1C5B4] focus:border-[#C5A059] focus:ring-0 text-lg font-serif text-[#222222] py-3 px-0" placeholder="4,284" type="number"/>
+</div>
+<div>
+<label class="text-[9px] uppercase font-bold text-[#777777] tracking-[0.2em] block mb-2">Transaction Note</label>
+<input class="w-full bg-[#F8F9FA] border-b border-[#D1C5B4] focus:border-[#C5A059] focus:ring-0 text-xs text-[#222222] py-3 px-0" placeholder="Settling pending balance..." type="text"/>
+</div>
+</div>
+<button class="w-full py-4 bg-[#C5A059] text-[10px] font-bold uppercase tracking-[0.2em] text-white hover:brightness-105 transition-all flex items-center justify-center gap-2">
+                    Submit Payment
+                    <span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<!-- History -->
+<div class="bg-[#F8F9FA] border border-[#D1C5B4]/15 p-8">
+<h4 class="text-[10px] font-bold text-[#222222] uppercase tracking-[0.2em] mb-8">History</h4>
+<div class="space-y-8">
+<div class="flex gap-4">
+<div class="h-8 w-8 shrink-0 flex items-center justify-center text-[#C5A059] border border-[#C5A059]/30 bg-white">
+<span class="material-symbols-outlined text-lg" data-icon="payments">payments</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-[#222222]">₹5,000</p>
+<span class="text-[9px] text-[#777777] uppercase font-medium">OCT 12</span>
+</div>
+<p class="text-[9px] text-[#777777] uppercase tracking-wider mt-1">Cash • Received by RM</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="h-8 w-8 shrink-0 flex items-center justify-center text-[#C5A059] border border-[#C5A059]/30 bg-white">
+<span class="material-symbols-outlined text-lg" data-icon="credit_card">credit_card</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="text-sm font-bold text-[#222222]">₹5,000</p>
+<span class="text-[9px] text-[#777777] uppercase font-medium">OCT 12</span>
+</div>
+<p class="text-[9px] text-[#777777] uppercase tracking-wider mt-1">Card • Received by RM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Nav -->
+<nav class="md:hidden fixed bottom-0 w-full bg-white border-t border-[#D1C5B4]/30 flex justify-around items-center h-20 z-50">
+<button class="flex flex-col items-center gap-1 text-[#777777]">
+<span class="material-symbols-outlined text-xl" data-icon="dashboard">dashboard</span>
+<span class="text-[8px] font-bold uppercase tracking-widest">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#C5A059]">
+<span class="material-symbols-outlined text-xl" data-icon="payments" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="text-[8px] font-bold uppercase tracking-widest">Billing</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#777777]">
+<span class="material-symbols-outlined text-xl" data-icon="account_circle">account_circle</span>
+<span class="text-[8px] font-bold uppercase tracking-widest">Profile</span>
+</button>
+</nav>
+</body></html>

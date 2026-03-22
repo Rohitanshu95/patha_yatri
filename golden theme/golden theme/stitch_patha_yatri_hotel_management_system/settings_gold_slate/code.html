@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Patha Yatri - System Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@500;600;700;800&amp;family=Playfair+Display:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#FFFFFF",
+              "primary-accent": "#C5A059",
+              "deep-neutral": "#222222",
+              "secondary-text": "#777777",
+              "section-divide": "#F8F9FA",
+              "border-soft": "#D1C5B4",
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .accent-gold { color: #C5A059; }
+        .bg-gold { background-color: #C5A059; }
+    </style>
+</head>
+<body class="bg-background text-deep-neutral selection:bg-primary-accent/20 selection:text-deep-neutral">
+<!-- SideNavBar (Authority Source: {{DATA:COMPONENTS:COMPONENTS_40}}) -->
+<aside class="fixed left-0 top-0 h-screen w-64 flex flex-col py-8 bg-[#F8F9FA] border-r border-border-soft/15 z-50">
+<div class="px-8 mb-10">
+<h1 class="text-2xl font-headline tracking-widest text-deep-neutral uppercase">Patha Yatri</h1>
+<p class="text-[10px] text-secondary-text uppercase tracking-[0.2em] font-bold mt-1">Premium Management</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center px-8 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4 text-primary-accent" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Bookings -->
+<a class="flex items-center px-8 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4 text-primary-accent" data-icon="calendar_month">calendar_month</span>
+<span>Bookings</span>
+</a>
+<!-- Rooms -->
+<a class="flex items-center px-8 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4 text-primary-accent" data-icon="bed">bed</span>
+<span>Rooms</span>
+</a>
+<!-- Guests -->
+<a class="flex items-center px-8 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4 text-primary-accent" data-icon="person_pin">person_pin</span>
+<span>Guests</span>
+</a>
+<!-- Analytics -->
+<a class="flex items-center px-8 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4 text-primary-accent" data-icon="analytics">analytics</span>
+<span>Analytics</span>
+</a>
+<!-- Settings (Active) -->
+<a class="flex items-center px-8 py-3 text-deep-neutral font-semibold bg-white shadow-sm border-r-2 border-primary-accent transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4 text-primary-accent" data-icon="settings" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-4 space-y-1">
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="help_outline">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-[#EDEEEF] transition-all duration-300 font-label text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined mr-4" data-icon="logout">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 min-h-screen flex flex-col bg-white">
+<!-- TopNavBar (Authority Source: {{DATA:COMPONENTS:COMPONENTS_40}}) -->
+<header class="fixed top-0 right-0 left-64 h-20 bg-white/80 backdrop-blur-xl z-40 flex justify-between items-center px-8 border-b border-border-soft/15">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-headline text-deep-neutral antialiased">System Settings</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-secondary-text">
+<button class="transition-colors duration-300 hover:text-primary-accent p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="transition-colors duration-300 hover:text-primary-accent p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+<button class="bg-primary-accent text-white px-6 py-2 rounded-lg font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-all active:scale-[0.99] shadow-sm">
+                    Save Changes
+                    <span class="material-symbols-outlined text-sm" data-icon="save">save</span>
+</button>
+</div>
+</header>
+<!-- Page Body Content -->
+<div class="pt-28 pb-12 px-8 flex gap-8">
+<!-- Left Sidebar (Inner Nav) -->
+<div class="w-72 shrink-0">
+<nav class="bg-section-divide rounded-2xl overflow-hidden border border-border-soft/15">
+<div class="p-2 space-y-1">
+<a class="flex items-center px-4 py-3 bg-white text-deep-neutral font-semibold rounded-xl transition-colors border border-primary-accent/20 shadow-sm" href="#">
+<span class="material-symbols-outlined mr-3 text-primary-accent" data-icon="hotel">hotel</span>
+                            Hotel Profile
+                        </a>
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-white/50 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="receipt_long">receipt_long</span>
+                            Tax &amp; GST Configuration
+                        </a>
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-white/50 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="meeting_room">meeting_room</span>
+                            Room Categories
+                        </a>
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-white/50 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="sell">sell</span>
+                            Pricing Rules
+                        </a>
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-white/50 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="admin_panel_settings">admin_panel_settings</span>
+                            User Roles &amp; Permissions
+                        </a>
+<a class="flex items-center px-4 py-3 text-secondary-text hover:bg-white/50 rounded-xl transition-all" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="mail">mail</span>
+                            Email / SMS Gateways
+                        </a>
+</div>
+</nav>
+</div>
+<!-- Right Content Area (Forms) -->
+<div class="flex-1 max-w-4xl">
+<div class="bg-white rounded-3xl p-8 border border-border-soft/20 shadow-sm">
+<div class="mb-8">
+<h3 class="text-3xl font-headline text-deep-neutral">Hotel Information</h3>
+<p class="text-secondary-text mt-1 text-sm">Update your property details, contact info, and branding.</p>
+</div>
+<!-- Subtle Divider -->
+<div class="h-px bg-border-soft/10 mb-8"></div>
+<!-- Two-column form grid -->
+<div class="grid grid-cols-2 gap-6 mb-10">
+<div class="space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Hotel Name</label>
+<input class="w-full bg-section-divide border-border-soft/20 rounded-xl px-4 py-3 text-deep-neutral focus:ring-1 focus:ring-primary-accent focus:border-primary-accent transition-all placeholder:text-secondary-text/50" type="text" value="Patha Yatri Hotel"/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Legal Entity Name</label>
+<input class="w-full bg-section-divide border-border-soft/20 rounded-xl px-4 py-3 text-deep-neutral focus:ring-1 focus:ring-primary-accent focus:border-primary-accent transition-all placeholder:text-secondary-text/50" type="text" value="Patha Yatri Hospitality Pvt. Ltd."/>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Hotel Email</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary-text/60 text-sm" data-icon="alternate_email">alternate_email</span>
+<input class="w-full bg-section-divide border-border-soft/20 rounded-xl pl-11 pr-4 py-3 text-deep-neutral focus:ring-1 focus:ring-primary-accent focus:border-primary-accent transition-all" placeholder="concierge@pathayatri.com" type="email"/>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Contact Phone</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-secondary-text/60 text-sm" data-icon="call">call</span>
+<input class="w-full bg-section-divide border-border-soft/20 rounded-xl pl-11 pr-4 py-3 text-deep-neutral focus:ring-1 focus:ring-primary-accent focus:border-primary-accent transition-all" placeholder="+91 98765 43210" type="tel"/>
+</div>
+</div>
+<div class="col-span-2 space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Full Address</label>
+<textarea class="w-full bg-section-divide border-border-soft/20 rounded-xl px-4 py-3 text-deep-neutral focus:ring-1 focus:ring-primary-accent focus:border-primary-accent transition-all" rows="3">123 Luxury Lane, Bhubaneswar, Odisha</textarea>
+</div>
+<div class="col-span-2 space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">GSTIN Number</label>
+<div class="relative">
+<input class="w-full bg-section-divide border-border-soft/20 rounded-xl px-4 py-3 text-deep-neutral focus:ring-1 focus:ring-primary-accent focus:border-primary-accent transition-all" type="text" value="21AAAAA0000A1Z5"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-emerald-600" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+</div>
+<!-- Branding Section -->
+<div class="mb-10">
+<h4 class="text-xl font-headline text-deep-neutral mb-6">Branding &amp; Assets</h4>
+<div class="grid grid-cols-2 gap-8">
+<div class="space-y-4">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Hotel Logo Dark</label>
+<div class="border-2 border-dashed border-border-soft/30 rounded-2xl p-6 flex flex-col items-center justify-center bg-section-divide hover:bg-[#EDEEEF] transition-colors cursor-pointer group">
+<div class="w-16 h-16 rounded-xl bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-105 transition-transform">
+<span class="text-primary-accent font-black text-xl font-headline">PY</span>
+</div>
+<span class="material-symbols-outlined text-secondary-text mb-2" data-icon="cloud_upload">cloud_upload</span>
+<p class="text-xs text-secondary-text text-center">Drag &amp; drop dark logo or <span class="text-primary-accent underline">browse</span></p>
+</div>
+</div>
+<div class="space-y-4">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Hotel Logo Light</label>
+<div class="border-2 border-dashed border-border-soft/30 rounded-2xl p-6 flex flex-col items-center justify-center bg-section-divide hover:bg-[#EDEEEF] transition-colors cursor-pointer group">
+<div class="w-16 h-16 rounded-xl bg-deep-neutral flex items-center justify-center mb-4 shadow-sm group-hover:scale-105 transition-transform">
+<span class="text-primary-accent font-black text-xl font-headline">PY</span>
+</div>
+<span class="material-symbols-outlined text-secondary-text mb-2" data-icon="cloud_upload">cloud_upload</span>
+<p class="text-xs text-secondary-text text-center">Drag &amp; drop light logo or <span class="text-primary-accent underline">browse</span></p>
+</div>
+</div>
+</div>
+<div class="mt-8 flex items-center gap-6">
+<div class="w-full max-w-xs space-y-2">
+<label class="text-[10px] uppercase tracking-widest font-bold text-secondary-text font-label">Primary Accent Color</label>
+<div class="flex items-center gap-4 bg-section-divide rounded-xl p-2 px-4 border border-border-soft/20">
+<input class="w-8 h-8 rounded-lg bg-transparent border-0 p-0 overflow-hidden cursor-pointer" type="color" value="#C5A059"/>
+<span class="text-sm font-mono text-deep-neutral">#C5A059</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="h-px bg-border-soft/10 mb-8"></div>
+<div class="flex justify-end gap-4">
+<button class="px-8 py-3 rounded-xl font-bold text-sm text-secondary-text hover:bg-section-divide transition-all">
+                            Cancel
+                        </button>
+<button class="bg-primary-accent text-white px-10 py-3 rounded-xl font-bold text-sm flex items-center gap-3 hover:opacity-90 transition-all active:scale-[0.99] shadow-sm">
+                            Update Profile
+                            <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

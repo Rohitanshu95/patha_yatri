@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Patha Yatri - Luxe Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#C5A059", // Muted Gold
+                        "on-surface": "#222222", // Soft Black
+                        "secondary-text": "#777777", // Medium Gray
+                        "background": "#FFFFFF", // Pure White
+                        "surface-container": "#F8F9FA", // Off-White
+                        "outline-variant": "#D1C5B4", // Light Beige/Tan for borders
+                    },
+                    fontFamily: {
+                        "headline": ["Cormorant Garamond", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #FFFFFF; color: #222222; }
+        h1, h2, h3, .headline { font-family: 'Cormorant Garamond', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .gold-accent { color: #C5A059; }
+        .luxury-card {
+            background: #FFFFFF;
+            border: 1px solid rgba(209, 197, 180, 0.3);
+            transition: all 0.3s ease;
+        }
+        .luxury-card:hover {
+            border-color: #C5A059;
+            box-shadow: 0 10px 30px -15px rgba(197, 160, 89, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface selection:bg-primary/20">
+<!-- SideNavBar (Authority: COMPONENTS_40) -->
+<aside class="fixed left-0 top-0 h-screen w-64 bg-[#F8F9FA] border-r border-[#D1C5B4]/15 flex flex-col py-8 z-20">
+<div class="px-8 mb-12 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full border border-primary flex items-center justify-center">
+<span class="text-primary font-serif text-lg">PY</span>
+</div>
+<div>
+<h2 class="text-xl font-serif tracking-widest text-[#222222] uppercase">Patha Yatri</h2>
+<p class="text-[10px] uppercase tracking-[0.2em] text-[#777777] font-medium">Luxe Management</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard Active -->
+<a class="flex items-center gap-4 py-3 px-8 text-[#222222] font-semibold bg-white border-r-2 border-primary transition-all" href="#">
+<span class="material-symbols-outlined gold-accent" data-icon="dashboard">dashboard</span>
+<span class="text-sm tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-8 text-[#777777] hover:text-[#222222] hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-sm tracking-tight">Users</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-8 text-[#777777] hover:text-[#222222] hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="bed">bed</span>
+<span class="text-sm tracking-tight">Rooms</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-8 text-[#777777] hover:text-[#222222] hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="text-sm tracking-tight">Reports</span>
+</a>
+<a class="flex items-center gap-4 py-3 px-8 text-[#777777] hover:text-[#222222] hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-sm tracking-tight">Audit Logs</span>
+</a>
+</nav>
+<div class="px-8 pt-6 border-t border-[#D1C5B4]/15">
+<a class="flex items-center gap-4 py-3 text-[#777777] hover:text-red-800 transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="text-sm tracking-tight">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Shell -->
+<main class="ml-64 min-h-screen bg-white">
+<!-- TopNavBar (Authority: COMPONENTS_40) -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-10 bg-white/80 backdrop-blur-xl border-b border-[#D1C5B4]/15 h-20 flex justify-between items-center px-10">
+<div>
+<h1 class="text-2xl font-serif text-[#222222]">Admin Dashboard</h1>
+<p class="text-xs text-[#777777] tracking-widest uppercase mt-0.5">April 12, 2024</p>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex gap-4 text-[#777777]">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">settings</span>
+</div>
+<button class="bg-[#C5A059] text-white px-8 py-2.5 text-xs font-semibold tracking-widest uppercase hover:opacity-90 transition-opacity flex items-center gap-2">
+                Manage System
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-32 pb-16 px-10 space-y-10">
+<!-- KPI Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<!-- KPI 1 -->
+<div class="luxury-card p-8 group">
+<div class="flex justify-between items-start mb-6">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777777]">Total Revenue Today</p>
+<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1">+12%</span>
+</div>
+<div class="flex items-end justify-between">
+<h3 class="text-3xl font-serif text-[#222222]">₹1,24,500</h3>
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">payments</span>
+</div>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="luxury-card p-8">
+<div class="flex justify-between items-start mb-6">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777777]">Total Bookings</p>
+</div>
+<div class="flex items-end justify-between">
+<h3 class="text-3xl font-serif text-[#222222]">87</h3>
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">bar_chart</span>
+</div>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="luxury-card p-8">
+<div class="flex justify-between items-start mb-6">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777777]">Occupancy Rate</p>
+</div>
+<div class="flex items-end justify-between">
+<h3 class="text-3xl font-serif text-[#222222]">72%</h3>
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">donut_large</span>
+</div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="luxury-card p-8">
+<div class="flex justify-between items-start mb-6">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#777777]">Active Staff</p>
+</div>
+<div class="flex items-end justify-between">
+<h3 class="text-3xl font-serif text-[#222222]">8 / 12</h3>
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">group</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Second Row: Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left: Revenue Trend -->
+<div class="lg:col-span-2 bg-[#F8F9FA] p-10 border border-[#D1C5B4]/20">
+<div class="flex justify-between items-center mb-12">
+<div>
+<h3 class="text-2xl font-serif text-[#222222] mb-1">Revenue Trend</h3>
+<p class="text-sm text-[#777777]">Activity over the last 7 days</p>
+</div>
+<div class="flex gap-6">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#C5A059]"></span>
+<span class="text-[10px] uppercase tracking-widest text-[#777777]">Room Revenue</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-[#222222]"></span>
+<span class="text-[10px] uppercase tracking-widest text-[#777777]">Service Revenue</span>
+</div>
+</div>
+</div>
+<!-- Chart Placeholder Visual -->
+<div class="h-64 flex items-end justify-between relative">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="w-full border-t border-[#D1C5B4]"></div>
+<div class="w-full border-t border-[#D1C5B4]"></div>
+<div class="w-full border-t border-[#D1C5B4]"></div>
+<div class="w-full border-t border-[#D1C5B4]"></div>
+</div>
+<div class="relative w-full h-full flex items-end px-2">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 700 200">
+<path d="M0,180 Q100,100 200,140 T400,60 T600,100 T700,40 V200 H0 Z" fill="url(#grad1)"></path>
+<path d="M0,180 Q100,100 200,140 T400,60 T600,100 T700,40" fill="none" stroke="#C5A059" stroke-width="2"></path>
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#C5A059;stop-opacity:0.1"></stop>
+<stop offset="100%" style="stop-color:#C5A059;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+<div class="flex justify-between mt-8 px-2 text-[10px] text-[#777777] font-bold uppercase tracking-[0.2em]">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+<!-- Right: Occupancy Bar Chart -->
+<div class="bg-white p-10 border border-[#D1C5B4]/20">
+<h3 class="text-2xl font-serif text-[#222222] mb-8">Occupancy by Category</h3>
+<div class="space-y-8">
+<div class="space-y-3">
+<div class="flex justify-between text-xs tracking-widest uppercase font-semibold">
+<span class="text-[#777777]">Standard</span>
+<span class="text-[#222222]">85%</span>
+</div>
+<div class="w-full h-1 bg-[#F8F9FA] overflow-hidden">
+<div class="h-full bg-[#C5A059]" style="width: 85%"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-xs tracking-widest uppercase font-semibold">
+<span class="text-[#777777]">Deluxe</span>
+<span class="text-[#222222]">70%</span>
+</div>
+<div class="w-full h-1 bg-[#F8F9FA] overflow-hidden">
+<div class="h-full bg-[#C5A059]" style="width: 70%"></div>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-xs tracking-widest uppercase font-semibold">
+<span class="text-[#777777]">Suite</span>
+<span class="text-[#222222]">55%</span>
+</div>
+<div class="w-full h-1 bg-[#F8F9FA] overflow-hidden">
+<div class="h-full bg-[#C5A059]" style="width: 55%"></div>
+</div>
+</div>
+</div>
+<div class="mt-16 p-6 bg-[#F8F9FA] border-l-2 border-primary">
+<p class="text-xs text-[#777777] leading-relaxed italic font-serif">"Peak hours expected between 2 PM and 4 PM based on current check-in data."</p>
+</div>
+</div>
+</div>
+<!-- Third Row: Audit & User Table -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Recent Activity -->
+<div class="bg-[#F8F9FA] p-10 border border-[#D1C5B4]/20">
+<div class="flex justify-between items-center mb-10">
+<h3 class="text-2xl font-serif text-[#222222]">Recent Activity</h3>
+<button class="text-[#C5A059] text-xs font-bold tracking-widest uppercase hover:underline underline-offset-4">View All</button>
+</div>
+<div class="space-y-8">
+<!-- Activity Items -->
+<div class="flex items-start gap-5">
+<img alt="Priya" class="w-12 h-12 rounded-full grayscale hover:grayscale-0 transition-all border border-[#D1C5B4]/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu5eAdp2uIZ6iB07USFHTfBVz1KhLE2-s0yqAvjTiQB0aE7cLAbblmrazal485QjP41QXKTdTyW46CGjms1eMwi6ZRset5O668PB1Nr66pljqCLvxLtyerqpKyd2NR2QpZ-Rpbk_naBsn1ZITBS4c2iHTZd9yjWa9q5K3mG7Zm-O6-2PfR7QZuVyqcdznpjjt7UiUYmH9ql3o0_RIawJkyk9cxno1H9O3C4WsikUX6fTYmMkT8XgJbIlml7NYAEVISUOuDg3uPpkA"/>
+<div class="flex-1">
+<p class="text-sm text-[#777777]"><span class="font-semibold text-[#222222]">Priya</span> checked-in <span class="text-primary font-medium">Amit</span> to Suite 302</p>
+<p class="text-[10px] uppercase tracking-widest text-[#777777]/60 mt-2">2m ago • Front Desk</p>
+</div>
+<button class="text-[#D1C5B4] hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-start gap-5">
+<img alt="Rohit" class="w-12 h-12 rounded-full grayscale hover:grayscale-0 transition-all border border-[#D1C5B4]/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBL7rS_bnB0K4lhtjjhRKEn-e8cqne_Ye3jeoby32EDx22LfkpKItqj7e5gBm2cA81FrDtjfsWb5uWfyE0Xd4IbdZYq_sVsRUh7EEZ1A1Ii6zvRPDMk1Wsn7r-GLCXrpSMebTLg1Uag6hK9qbZ-mkSsNqn2gp6tszlsK2iv55vym6xtDTKGz0yftcvA1dzv48brmLRSFtK_IOJX6UjVh_PeN5kk0rTv1m7albCMa4CfaewR3mMlhEQ5Qe6d2-j35FI1dazlw3l5weE"/>
+<div class="flex-1">
+<p class="text-sm text-[#777777]"><span class="font-semibold text-[#222222]">Rohit</span> applied a luxury discount for <span class="text-primary font-medium">Luxe Stay Promo</span></p>
+<p class="text-[10px] uppercase tracking-widest text-[#777777]/60 mt-2">15m ago • Manager</p>
+</div>
+<button class="text-[#D1C5B4] hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+<div class="flex items-start gap-5">
+<img alt="Staff" class="w-12 h-12 rounded-full grayscale hover:grayscale-0 transition-all border border-[#D1C5B4]/30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA28Jk6q0spHbubLblnX7d1gEKeso7OMh6xs13-LOtdfhBP3d6eSNOgrm-I8wfNvY4EOqFSlkYGdhu1qe19UOOCbYGNmL7aDzFtZy2zIAhAx_hwRjnuL7EiPsH8CHf3Y-xnH9qEkatjnuRQydBb8G8JUG5tR_h5kvtItAyinNrjJVZhGZynDFZ-9wo3cu5YXxORnQ8lq3gNobr8Tz98pWV0CLCaJhf2Lnyi6u1dIDYS3TKhWfPVKIufbz3MD7iI8QlzJVHvRd6bb8"/>
+<div class="flex-1">
+<p class="text-sm text-[#777777]"><span class="font-semibold text-[#222222]">System</span> flagged low inventory for <span class="text-primary font-medium">Champagne Selection</span></p>
+<p class="text-[10px] uppercase tracking-widest text-[#777777]/60 mt-2">45m ago • Inventory Bot</p>
+</div>
+<button class="text-[#D1C5B4] hover:text-primary transition-colors"><span class="material-symbols-outlined">more_vert</span></button>
+</div>
+</div>
+</div>
+<!-- Staff Status Table -->
+<div class="bg-white p-10 border border-[#D1C5B4]/20">
+<div class="flex justify-between items-center mb-10">
+<h3 class="text-2xl font-serif text-[#222222]">Staff Status</h3>
+<a class="text-xs font-bold tracking-widest uppercase text-[#777777] flex items-center gap-2 hover:text-primary transition-colors" href="#">
+                        View All Users
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[10px] uppercase tracking-[0.2em] text-[#777777] border-b border-[#D1C5B4]/20">
+<th class="pb-5 font-bold">Name</th>
+<th class="pb-5 font-bold">Role</th>
+<th class="pb-5 font-bold text-center">Status</th>
+<th class="pb-5 font-bold text-right">Last Login</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#D1C5B4]/10">
+<tr class="group hover:bg-[#F8F9FA] transition-colors">
+<td class="py-5">
+<div class="flex items-center gap-4">
+<div class="w-9 h-9 border border-[#D1C5B4]/30 flex items-center justify-center text-[10px] font-bold text-primary">AK</div>
+<span class="text-sm font-medium text-[#222222]">Amit Kumar</span>
+</div>
+</td>
+<td class="py-5">
+<span class="text-[9px] font-bold tracking-widest px-3 py-1 bg-primary/5 text-primary border border-primary/20 uppercase">Admin</span>
+</td>
+<td class="py-5 text-center">
+<div class="inline-flex h-4 w-8 items-center border border-[#D1C5B4]/30 p-0.5">
+<div class="h-2.5 w-2.5 bg-primary ml-auto"></div>
+</div>
+</td>
+<td class="py-5 text-right">
+<span class="text-xs text-[#777777]">Just now</span>
+</td>
+</tr>
+<tr class="group hover:bg-[#F8F9FA] transition-colors">
+<td class="py-5">
+<div class="flex items-center gap-4">
+<div class="w-9 h-9 border border-[#D1C5B4]/30 flex items-center justify-center text-[10px] font-bold text-primary">SM</div>
+<span class="text-sm font-medium text-[#222222]">Sneha Mishra</span>
+</div>
+</td>
+<td class="py-5">
+<span class="text-[9px] font-bold tracking-widest px-3 py-1 bg-stone-100 text-[#777777] border border-[#D1C5B4]/30 uppercase">Reception</span>
+</td>
+<td class="py-5 text-center">
+<div class="inline-flex h-4 w-8 items-center border border-[#D1C5B4]/30 p-0.5">
+<div class="h-2.5 w-2.5 bg-primary ml-auto"></div>
+</div>
+</td>
+<td class="py-5 text-right">
+<span class="text-xs text-[#777777]">22m ago</span>
+</td>
+</tr>
+<tr class="group hover:bg-[#F8F9FA] transition-colors">
+<td class="py-5">
+<div class="flex items-center gap-4">
+<div class="w-9 h-9 border border-[#D1C5B4]/30 flex items-center justify-center text-[10px] font-bold text-primary">VS</div>
+<span class="text-sm font-medium text-[#222222]">Vikram Singh</span>
+</div>
+</td>
+<td class="py-5">
+<span class="text-[9px] font-bold tracking-widest px-3 py-1 bg-stone-100 text-[#777777] border border-[#D1C5B4]/30 uppercase">Staff</span>
+</td>
+<td class="py-5 text-center">
+<div class="inline-flex h-4 w-8 items-center border border-[#D1C5B4]/30 p-0.5">
+<div class="h-2.5 w-2.5 bg-[#D1C5B4]"></div>
+</div>
+</td>
+<td class="py-5 text-right">
+<span class="text-xs text-[#777777]">1h ago</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>New Booking | Midnight Concierge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#C5A059", // Muted Gold
+              "on-primary": "#FFFFFF",
+              "surface": "#FFFFFF", // Pure White
+              "surface-container": "#F8F9FA", // Off-White / Section Divide
+              "on-surface": "#222222", // Soft Black / Deep Neutral
+              "on-surface-variant": "#777777", // Medium Gray / Secondary Text
+              "outline": "#D1C5B4",
+              "outline-variant": "#E5E7EB",
+            },
+            fontFamily: {
+              "headline": ["Playfair Display", "serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Playfair Display', serif; }
+        input, select, textarea { border-radius: 0 !important; }
+        .booking-modal { box-shadow: 0 40px 100px -20px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body class="bg-[#F8F9FA] text-on-surface min-h-screen antialiased">
+<!-- Blurred Background Content (Simulated Booking Table) -->
+<div class="fixed inset-0 z-0 overflow-hidden opacity-10 grayscale pointer-events-none">
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<div class="h-12 w-1/4 bg-slate-200 rounded mb-8"></div>
+<div class="grid grid-cols-4 gap-4 mb-8">
+<div class="h-24 bg-slate-200"></div>
+<div class="h-24 bg-slate-200"></div>
+<div class="h-24 bg-slate-200"></div>
+<div class="h-24 bg-slate-200"></div>
+</div>
+<div class="space-y-4">
+<div class="h-16 bg-slate-200 w-full"></div>
+<div class="h-16 bg-slate-200 w-full"></div>
+<div class="h-16 bg-slate-200 w-full"></div>
+</div>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+<!-- Modal Card -->
+<div class="w-full max-w-[760px] max-h-[95vh] overflow-y-auto bg-surface booking-modal border border-outline/10 flex flex-col relative">
+<!-- Header -->
+<div class="px-10 py-8 flex justify-between items-center bg-surface sticky top-0 z-10 border-b border-outline/10">
+<div class="space-y-1">
+<p class="text-[10px] uppercase tracking-[0.2em] font-bold text-primary">Reservations</p>
+<h2 class="text-3xl font-headline text-on-surface italic">New Walk-in Booking</h2>
+</div>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-10 grid grid-cols-1 md:grid-cols-2 gap-12">
+<!-- LEFT COLUMN -->
+<div class="space-y-10">
+<!-- Guest Details Section -->
+<section class="space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant font-label">Guest Details</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
+<input class="w-full bg-surface-container border border-outline-variant/30 px-4 pl-12 py-4 focus:ring-0 focus:border-primary/50 text-on-surface placeholder:text-on-surface-variant/50 transition-all text-sm" placeholder="Search by name or phone..." type="text"/>
+</div>
+<button class="flex items-center gap-2 text-primary font-semibold text-xs tracking-wider uppercase hover:opacity-70 transition-all">
+<span class="material-symbols-outlined text-base">person_add</span>
+                        Register New Guest
+                    </button>
+</section>
+<!-- Room Selection Section -->
+<section class="space-y-4">
+<label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant font-label">Room Selection</label>
+<!-- Date Range Picker -->
+<div class="grid grid-cols-2 gap-px bg-outline/20 overflow-hidden border border-outline/20">
+<div class="bg-surface p-4 space-y-1">
+<span class="text-[9px] uppercase font-bold text-on-surface-variant/60 tracking-widest">Check-In</span>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary text-base">calendar_today</span>
+<span class="text-sm font-medium">Oct 24, 2023</span>
+</div>
+</div>
+<div class="bg-surface p-4 space-y-1 relative border-l border-outline/20">
+<span class="text-[9px] uppercase font-bold text-on-surface-variant/60 tracking-widest">Check-Out</span>
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary text-base">calendar_month</span>
+<span class="text-sm font-medium">Oct 27, 2023</span>
+</div>
+<span class="absolute -top-3 -right-2 bg-primary text-white text-[9px] px-2 py-0.5 font-bold tracking-tighter">3 NIGHTS</span>
+</div>
+</div>
+<!-- Dropdown -->
+<div class="relative">
+<select class="w-full bg-surface border border-outline/30 px-4 py-4 appearance-none focus:ring-0 focus:border-primary/50 text-on-surface cursor-pointer text-sm">
+<option>Deluxe Suite — Room 302 (₹3,500/night)</option>
+<option>Standard — Room 104 (₹2,200/night)</option>
+<option>Luxury Penthouse (₹8,500/night)</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary">expand_more</span>
+</div>
+<!-- Room Preview Card -->
+<div class="bg-surface-container p-6 space-y-4 border-l-2 border-primary/40">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline text-xl font-medium text-on-surface italic">Room 302</h4>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">Deluxe Category</p>
+</div>
+<div class="text-right">
+<p class="font-headline text-xl font-bold text-primary">₹3,500</p>
+<p class="text-[9px] uppercase tracking-tighter text-on-surface-variant">per night</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-4 pt-2 border-t border-outline/10">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">ac_unit</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">AC</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">wifi</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">WiFi</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-sm">tv</span>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">TV</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- RIGHT COLUMN -->
+<div class="space-y-10">
+<!-- Booking Details Section -->
+<section class="space-y-6">
+<label class="block text-[10px] font-bold uppercase tracking-[0.15em] text-on-surface-variant font-label">Booking Details</label>
+<!-- Source Pills -->
+<div class="flex flex-wrap gap-3">
+<button class="px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-primary text-white shadow-md shadow-primary/10">Walk-in</button>
+<button class="px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-white border border-outline/30 text-on-surface-variant hover:border-primary/40 transition-colors">Phone</button>
+<button class="px-5 py-2.5 text-[10px] font-bold uppercase tracking-widest bg-white border border-outline/30 text-on-surface-variant hover:border-primary/40 transition-colors">OTA</button>
+</div>
+<!-- Advance Payment -->
+<div class="space-y-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/80">Advance Payment</span>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-medium">₹</span>
+<input class="w-full bg-surface border border-outline/30 px-4 pl-8 py-3 focus:ring-0 focus:border-primary/50 text-on-surface text-sm font-medium" type="number" value="0"/>
+</div>
+</div>
+<!-- Special Requests -->
+<div class="space-y-2">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/80">Special Requests</span>
+<textarea class="w-full bg-surface border border-outline/30 px-4 py-3 focus:ring-0 focus:border-primary/50 text-on-surface placeholder:text-on-surface-variant/40 resize-none text-sm" placeholder="Any specific requirements..." rows="2"></textarea>
+</div>
+</section>
+<!-- Summary Card -->
+<section class="bg-surface-container p-8 border border-outline/10 space-y-5">
+<h4 class="text-[10px] font-bold uppercase tracking-[0.2em] text-primary font-label">Booking Summary</h4>
+<div class="space-y-3 text-sm">
+<div class="flex justify-between text-on-surface-variant">
+<span class="text-xs">Room: Deluxe — 302</span>
+<span class="text-xs italic">3 nights</span>
+</div>
+<div class="flex justify-between text-on-surface font-medium">
+<span>Room Charges</span>
+<span>₹10,500</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span class="text-xs">GST (12%)</span>
+<span class="text-xs">₹1,260</span>
+</div>
+<div class="h-px bg-outline/20 my-4"></div>
+<div class="flex justify-between text-lg font-bold text-on-surface font-headline italic">
+<span>Estimated Total</span>
+<span>₹11,760</span>
+</div>
+<div class="flex justify-between text-on-surface-variant italic text-xs pt-1">
+<span>Advance Payment</span>
+<span>- ₹0</span>
+</div>
+<div class="flex justify-between text-primary font-bold pt-2 border-t border-primary/10">
+<span class="uppercase tracking-widest text-[10px]">Balance Due</span>
+<span class="text-lg">₹11,760</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Footer -->
+<div class="px-10 py-8 flex justify-end items-center gap-8 bg-surface-container border-t border-outline/10 mt-auto">
+<button class="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant hover:text-on-surface transition-colors">Cancel</button>
+<button class="bg-primary hover:bg-primary/90 text-white px-10 py-4 font-bold text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-xl shadow-primary/20 transition-all active:scale-95 group">
+                Confirm Booking
+                <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Image for Context (Hidden) -->
+<div class="hidden">
+<img alt="Lobby" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIEDh4S6CMP5841s1G8h5M6aovDTcQNKwcGv2sVlstDP3ZRNTz4GN6AqurL701RwGgfbvQso7HYQ6TyOrLJn9WJnotw9uRzbODwm_3490wZFtfuI9KVdms6pOsx5y8awlxxSsEz0c-jUoYBTylV3Qs4GZDQ48lSNdD7MXOCehjpA_fcxCASEUPF0UpHnul4FCT2UPHMOF2zwGohqSEaqcmhiRVMJFBbRR9pWfvnXlhhOZeO7y6B_Vygh5Dssun-gPvIexHgnKymJc"/>
+</div>
+</body></html>

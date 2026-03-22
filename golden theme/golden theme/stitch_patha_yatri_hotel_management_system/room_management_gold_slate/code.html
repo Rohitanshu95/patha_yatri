@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Room Management | Luxe Concierge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#C5A059",
+                        "on-primary": "#FFFFFF",
+                        "surface": "#FFFFFF",
+                        "on-surface": "#222222",
+                        "on-surface-variant": "#777777",
+                        "background": "#FFFFFF",
+                        "section-divide": "#F8F9FA",
+                        "outline": "#D1C5B4",
+                    },
+                    fontFamily: {
+                        "headline": ["Playfair Display", "serif"],
+                        "body": ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .luxury-card {
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(209, 197, 180, 0.2);
+        }
+        .luxury-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -15px rgba(197, 160, 89, 0.1);
+            border-color: rgba(197, 160, 89, 0.3);
+        }
+        .active-tab {
+            position: relative;
+        }
+        .active-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #C5A059;
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased">
+<!-- Side Navigation Bar (Based on SideNavBar component) -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#F8F9FA] border-r border-[#D1C5B4]/15 flex flex-col py-8 z-50">
+<div class="px-8 mb-10">
+<h1 class="font-serif text-2xl tracking-widest text-[#222222] uppercase">Grand Elysium</h1>
+<p class="text-[10px] text-[#777777] tracking-[0.2em] uppercase mt-1">Premium Management</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-4 text-[#777777] py-3 px-8 hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-[#222222] font-semibold bg-white shadow-sm py-3 px-8 border-r-2 border-[#C5A059]" href="#">
+<span class="material-symbols-outlined text-[#C5A059]" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="text-sm tracking-tight">Reservations</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] py-3 px-8 hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined">person_pin</span>
+<span class="text-sm tracking-tight">Guest Folios</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] py-3 px-8 hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined">cleaning_services</span>
+<span class="text-sm tracking-tight">Housekeeping</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] py-3 px-8 hover:bg-[#EDEEEF] transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm tracking-tight">Analytics</span>
+</a>
+</nav>
+<div class="px-6 py-4">
+<button class="w-full bg-[#C5A059] text-white font-medium py-3 rounded-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity uppercase text-xs tracking-widest">
+<span>New Reservation</span>
+</button>
+</div>
+<div class="mt-auto pt-4 border-t border-[#D1C5B4]/15 space-y-1">
+<a class="flex items-center gap-4 text-[#777777] py-2 px-8 hover:text-[#C5A059] transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">help_outline</span>
+<span class="text-sm tracking-tight">Support</span>
+</a>
+<a class="flex items-center gap-4 text-[#777777] py-2 px-8 hover:text-[#C5A059] transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span class="text-sm tracking-tight">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Top Navigation Bar (Based on TopNavBar component) -->
+<header class="fixed top-0 right-0 left-64 h-20 bg-white/80 backdrop-blur-xl border-b border-[#D1C5B4]/15 z-40 flex justify-between items-center px-8">
+<div class="flex items-center gap-2">
+<h2 class="text-lg font-serif tracking-tight text-[#222222]">Room Management</h2>
+</div>
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 bg-[#F8F9FA] px-4 py-2 rounded-sm border border-[#D1C5B4]/15">
+<span class="material-symbols-outlined text-[#777777] text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 text-[#222222] placeholder-[#777777]" placeholder="Search rooms..." type="text"/>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-6 w-[1px] bg-[#D1C5B4]/30"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-semibold text-[#222222]">Admin User</p>
+<p class="text-[10px] text-[#777777] uppercase tracking-tighter">Executive Manager</p>
+</div>
+<div class="w-10 h-10 rounded-full border border-[#D1C5B4]/30 overflow-hidden">
+<img alt="Executive Manager Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE4ZUNvqrBmcgWuAGxJapU7mQtGDzGYDa6S5a35_KD0VLqs05o6cxd9poGz30A6C0_sS4WI1k_y0uaxX841GXgllSm1bpeHAzaN-fd1PnOEGqhcYPepEjy7PqO1w5wKbYkhpge5ajiRwpxaCeac4MfnWHbgnywiXNoi7L0IesnowyuqLKmFOHCpSG9GevaQSB0b1-l-gcnKFs0jBllxNBaN5AHHDYqsOcv8r8g0W3xuF4F_vuvk9BtNHlvR53oH3gp07j932yWUzA"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 pt-28 pb-12 px-10 min-h-screen">
+<!-- Page Header Section -->
+<section class="flex justify-between items-end mb-12">
+<div>
+<h2 class="text-4xl font-headline font-bold text-[#222222] tracking-tight">Luxury Accommodations</h2>
+<div class="flex items-center gap-2 mt-3">
+<span class="w-1.5 h-1.5 rounded-full bg-[#C5A059]"></span>
+<p class="text-[#777777] text-sm font-medium">Managing 34 premium guest suites</p>
+</div>
+</div>
+<button class="bg-[#222222] text-[#C5A059] border border-[#C5A059] font-medium px-8 py-3 rounded-sm flex items-center gap-3 hover:bg-[#C5A059] hover:text-white transition-all uppercase text-xs tracking-widest">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>Add New Suite</span>
+</button>
+</section>
+<!-- Filter Row -->
+<section class="flex flex-wrap items-center justify-between gap-6 mb-10 pb-6 border-b border-[#F8F9FA]">
+<div class="flex items-center gap-8">
+<button class="text-sm font-semibold text-[#222222] active-tab pb-1">All Inventory (34)</button>
+<button class="text-sm font-medium text-[#777777] hover:text-[#C5A059] transition-colors pb-1">Available (12)</button>
+<button class="text-sm font-medium text-[#777777] hover:text-[#C5A059] transition-colors pb-1">Occupied (18)</button>
+<button class="text-sm font-medium text-[#777777] hover:text-[#C5A059] transition-colors pb-1">Maintenance (4)</button>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-[10px] font-bold text-[#777777] uppercase tracking-widest">Filter Category:</span>
+<div class="flex gap-4">
+<button class="text-xs font-bold text-[#777777] hover:text-[#C5A059] uppercase tracking-wider transition-colors">Standard</button>
+<button class="text-xs font-bold text-[#777777] hover:text-[#C5A059] uppercase tracking-wider transition-colors">Deluxe</button>
+<button class="text-xs font-bold text-[#C5A059] uppercase tracking-wider">Suites</button>
+</div>
+</div>
+</section>
+<!-- Room Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+<!-- Card 1: Suite / Occupied -->
+<div class="luxury-card group bg-white overflow-hidden flex flex-col">
+<div class="h-56 w-full relative overflow-hidden">
+<img alt="Suite Image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzwTDOnfgDsz7IZZLj-ZpISJ02rtdUsJGYCnwAr9XGsqG25iCm0L4tGASszMp-dxFuKt_iyaxgFL-p0y_oZs23lTdvIvXaQCzHBmw_HnLlqf2R1SMBVaqosj_5CeW7ELL4P6eBVzLJcofRzVef6AXQe1bOim2B8lpWwoOlqaMAuVHSkOatWj9rocvbEiNuQWz2fO8DOwrN1M_WiJlhehlQ-LO0CU_ldCVS2FJDUhUIQ9Xg5o5LVJ5Lka3K7hUA9wyWeWhvOp1YbFc"/>
+<div class="absolute inset-0 bg-black/10"></div>
+<div class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm border border-[#D1C5B4]/30 rounded-sm">
+<span class="text-[9px] font-bold text-[#777777] uppercase tracking-widest">Occupied</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-[#C5A059] text-white rounded-sm">
+<span class="text-[9px] font-bold uppercase tracking-widest">Suite</span>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-headline font-bold text-[#222222]">Room 301</h3>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-[#C5A059] text-lg">wifi</span>
+<span class="material-symbols-outlined text-[#C5A059] text-lg">ac_unit</span>
+</div>
+</div>
+<p class="text-[#777777] font-medium text-sm mb-6 uppercase tracking-wider text-[11px]">Ocean View Master Suite</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-2xl font-headline font-bold text-[#222222]">₹7,500</span>
+<span class="text-[10px] text-[#777777] uppercase tracking-tighter">/ Nightly</span>
+</div>
+<div class="mt-auto pt-6 border-t border-[#F8F9FA] flex items-center justify-between">
+<div class="flex items-center gap-2 text-[10px] text-[#777777] uppercase font-semibold">
+<span class="material-symbols-outlined text-sm text-[#C5A059]">person</span>
+<span>Sarah Jenkins</span>
+</div>
+<div class="flex gap-4">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">edit_note</span>
+</button>
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Deluxe / Available -->
+<div class="luxury-card group bg-white overflow-hidden flex flex-col">
+<div class="h-56 w-full relative overflow-hidden">
+<img alt="Deluxe Room" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDvD3b6OjN9T_1R6rRamTQbOofM5OS7HpVkhFvpBfOAQBORGI6MLYwqDU6g8Po8MdYjsRgw0fOqqU9vgHy4SWjqxaavLluD_l9jnZ3f2VVaMJz10O3-IdmFVRHDkl9GcHWgcLXwotdTVZ6bGCaLQZHyoGQKB1Z2z5HHx50iYnPFvqzt0vuZvOT6XGrpnt6BrhK72y4hjVBazaudZqCVnne4ZcGnDIeBUjr71JjYsfX-ta3DTbc7kUhJ6fRBGZOwCdQVtuoxMQPfgs"/>
+<div class="absolute inset-0 bg-black/5"></div>
+<div class="absolute top-4 left-4 px-3 py-1 bg-[#C5A059] text-white rounded-sm shadow-sm">
+<span class="text-[9px] font-bold uppercase tracking-widest">Available</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm border border-[#D1C5B4]/30 rounded-sm">
+<span class="text-[9px] font-bold text-[#777777] uppercase tracking-widest">Deluxe</span>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-headline font-bold text-[#222222]">Room 204</h3>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-[#C5A059] text-lg">balcony</span>
+<span class="material-symbols-outlined text-[#C5A059] text-lg">wifi</span>
+</div>
+</div>
+<p class="text-[#777777] font-medium text-sm mb-6 uppercase tracking-wider text-[11px]">Premium Garden Balcony</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-2xl font-headline font-bold text-[#222222]">₹4,200</span>
+<span class="text-[10px] text-[#777777] uppercase tracking-tighter">/ Nightly</span>
+</div>
+<div class="mt-auto pt-6 border-t border-[#F8F9FA] flex items-center justify-between">
+<div class="flex items-center gap-2 text-[10px] text-[#C5A059] font-bold uppercase tracking-widest">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span>Ready for Check-in</span>
+</div>
+<div class="flex gap-4">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">edit_note</span>
+</button>
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Standard / Maintenance -->
+<div class="luxury-card group bg-white overflow-hidden flex flex-col opacity-80">
+<div class="h-56 w-full relative overflow-hidden grayscale">
+<img alt="Standard Room" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEMHv7Q9LbFGqMKFKeSg8KysdJiW0El1MTX-9pQUoft8RjpnwniHg0XLAWkb04u8IwvOrrrLu8XVrJYQppy2bYZ3aA874_D15EVlmz2oDPOPc9Y4ME5Vfi-GTUXxZO_IWedGEgIM6mnaKG8fKK0Wud8EOo8dFNFHnTYUdMGsUB__0zuMaooaKF1Xn50PxZ1zrWNX0XQQzgG4-y9RCNlgzSxjuT5eiwpWs8ei9hF2BGohBHCcl3n4U_k2txS0TXwYpvJ0Zd9R2DhuQ"/>
+<div class="absolute top-4 left-4 px-3 py-1 bg-[#222222] text-[#C5A059] rounded-sm">
+<span class="text-[9px] font-bold uppercase tracking-widest">Maintenance</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm border border-[#D1C5B4]/30 rounded-sm">
+<span class="text-[9px] font-bold text-[#777777] uppercase tracking-widest">Standard</span>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-headline font-bold text-[#222222]">Room 105</h3>
+</div>
+<p class="text-[#777777] font-medium text-sm mb-6 uppercase tracking-wider text-[11px]">Cozy City Side</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-2xl font-headline font-bold text-[#777777]">₹2,800</span>
+</div>
+<div class="mt-auto pt-6 border-t border-[#F8F9FA] flex items-center justify-between">
+<div class="flex items-center gap-2 text-[10px] text-[#222222] font-semibold italic">
+<span class="material-symbols-outlined text-sm text-[#C5A059]">engineering</span>
+<span>AC Unit Service</span>
+</div>
+<div class="flex gap-4">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">edit_note</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Deluxe / Occupied -->
+<div class="luxury-card group bg-white overflow-hidden flex flex-col">
+<div class="h-56 w-full relative overflow-hidden">
+<img alt="Deluxe Room" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl8xBj4nJ5yhM7hY6Bc8d5vdDdGawcLP0HCorf9SQ6qT8d9x7pHq__9vnWWrWxAEEZsJ652LaqqHnqJ2bX2fSkCCIq_JIeCVF6I2YG03QFkRxOhDhCyl7PFqqrNJhvzqoGn1gKsZ1GwbZRjIDi1TWPFqypirIekuu1pQwGNAsMJOB2-IP9STzm02U1a8sePZqC1209mvIhFZSfeOOkoaRREg0txrLVgo-ntNK1Vtr0e20Xw4IsND5mY_mzSbngeoi-NHGbfvdPor4"/>
+<div class="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm border border-[#D1C5B4]/30 rounded-sm">
+<span class="text-[9px] font-bold text-[#777777] uppercase tracking-widest">Occupied</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm border border-[#D1C5B4]/30 rounded-sm">
+<span class="text-[9px] font-bold text-[#777777] uppercase tracking-widest">Deluxe</span>
+</div>
+</div>
+<div class="p-8 flex-1">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-headline font-bold text-[#222222]">Room 208</h3>
+<div class="flex gap-3 text-[#C5A059]">
+<span class="material-symbols-outlined text-lg">wifi</span>
+<span class="material-symbols-outlined text-lg">kitchen</span>
+</div>
+</div>
+<p class="text-[#777777] font-medium text-sm mb-6 uppercase tracking-wider text-[11px]">Executive Double Suite</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-2xl font-headline font-bold text-[#222222]">₹4,800</span>
+</div>
+<div class="pt-6 border-t border-[#F8F9FA] flex items-center justify-between">
+<div class="text-[10px] text-[#777777] font-semibold uppercase">Guest: David Miller</div>
+<div class="flex gap-4">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">edit_note</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5: Suite / Available -->
+<div class="luxury-card group bg-white overflow-hidden flex flex-col">
+<div class="h-56 w-full relative overflow-hidden">
+<img alt="Presidential Suite" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBO93DZhWLZsRxzWSjckubpNHMazPFd0WTpjnVexzvfqDa8-lZuPpKfBHGZKNzD0jKsksuy_XqeJpfxVET3rn0NikzZ2t7qUnQUfEMkBJ7khLWT3LhVz-s2udzX4XhhRsnP8fW-MV9Mbe6KMcEAjUORr6OU_U5EFvGFqVJE-VTEWuR3meIYR9MOFBE7K6wkQBkEH6FVXy-osvUTUrXi9SRBtetUFgGcnCFjd2z4aCYvMQxSacx7V-DEzL4iiTJAKvFjVYgOsXl1RTw"/>
+<div class="absolute top-4 left-4 px-3 py-1 bg-[#C5A059] text-white rounded-sm">
+<span class="text-[9px] font-bold uppercase tracking-widest">Available</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-[#222222] text-[#C5A059] rounded-sm">
+<span class="text-[9px] font-bold uppercase tracking-widest">Royal Suite</span>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-headline font-bold text-[#222222]">Room 402</h3>
+<div class="flex gap-3 text-[#C5A059]">
+<span class="material-symbols-outlined text-lg">wine_bar</span>
+<span class="material-symbols-outlined text-lg">pool</span>
+</div>
+</div>
+<p class="text-[#777777] font-medium text-sm mb-6 uppercase tracking-wider text-[11px]">Penthouse Presidential</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-2xl font-headline font-bold text-[#222222]">₹12,500</span>
+<span class="text-[10px] text-[#777777] uppercase tracking-tighter">/ Nightly</span>
+</div>
+<div class="mt-auto pt-6 border-t border-[#F8F9FA] flex items-center justify-between">
+<div class="text-[10px] text-[#C5A059] font-bold uppercase tracking-[0.2em]">Ready for VIP</div>
+<div class="flex gap-4">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">edit_note</span>
+</button>
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 6: Standard / Available -->
+<div class="luxury-card group bg-white overflow-hidden flex flex-col">
+<div class="h-56 w-full relative overflow-hidden">
+<img alt="Economy Standard" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5GkPtNrbgKkUhdodgidw3wzIUmVUaRft2Nh5jlaYMNh0MRlFPidGHimtZ1A_gpmmK5I1qSNO-nWfZK6Fs8c72P6_wRMcOyP5cSFzUcwuZViBE4h3zEFc6uqhPn668akSVVvS1BMFMvOUD1l6oTPrhHmIFmv6E5vwxeAIusbSpxpyxCwnBqzyleubHQ5OJRw3UffA6VhRbmET1DiVLbWZKZttZX9d8RGsCp0MOWTwk3gJKYhQaK8Fej75OBTmd6igJzptbIg1Fg0A"/>
+<div class="absolute top-4 left-4 px-3 py-1 bg-[#C5A059] text-white rounded-sm">
+<span class="text-[9px] font-bold uppercase tracking-widest">Available</span>
+</div>
+<div class="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm border border-[#D1C5B4]/30 rounded-sm">
+<span class="text-[9px] font-bold text-[#777777] uppercase tracking-widest">Standard</span>
+</div>
+</div>
+<div class="p-8 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-2xl font-headline font-bold text-[#222222]">Room 102</h3>
+</div>
+<p class="text-[#777777] font-medium text-sm mb-6 uppercase tracking-wider text-[11px]">Urban Luxury Compact</p>
+<div class="flex items-baseline gap-2 mb-6">
+<span class="text-2xl font-headline font-bold text-[#222222]">₹2,500</span>
+</div>
+<div class="mt-auto pt-6 border-t border-[#F8F9FA] flex items-center justify-between">
+<div class="text-[10px] text-[#777777] font-semibold uppercase">Max 2 Guests</div>
+<div class="flex gap-4">
+<button class="text-[#777777] hover:text-[#C5A059] transition-colors">
+<span class="material-symbols-outlined text-xl">edit_note</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<footer class="mt-16 pt-8 border-t border-[#F8F9FA] flex justify-between items-center text-[#777777] text-[10px] font-bold uppercase tracking-[0.1em]">
+<p>Displaying 6 of 34 Premium Suites</p>
+<div class="flex gap-4 items-center">
+<button class="w-8 h-8 flex items-center justify-center border border-[#D1C5B4]/30 text-[#777777] hover:border-[#C5A059] hover:text-[#C5A059] transition-all">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center bg-[#C5A059] text-white">1</button>
+<button class="w-8 h-8 flex items-center justify-center border border-[#D1C5B4]/30 hover:border-[#C5A059] transition-all">2</button>
+<button class="w-8 h-8 flex items-center justify-center border border-[#D1C5B4]/30 hover:border-[#C5A059] transition-all">3</button>
+<button class="w-8 h-8 flex items-center justify-center border border-[#D1C5B4]/30 text-[#777777] hover:border-[#C5A059] hover:text-[#C5A059] transition-all">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</footer>
+</main>
+</body></html>
