@@ -1,11 +1,53 @@
 import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import Bill from "../models/Bill.js";
+import Guest from "../models/Guest.js";
+import Payment from "../models/Payment.js";
 import Room from "../models/Room.js";
 import Service from "../models/Service.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import { calculateBill } from "../utils/billCalculator.js";
 import { sendBookingMail, sendInvoiceMail } from "../utils/mail.js";
+
+const getBillStatus = (totalAmount, amountPaid) => {
+  if (totalAmount > 0 && amountPaid >= totalAmount) return "paid";
+  if (amountPaid > 0) return "partial";
+  return "unpaid";
+};
+
+const calculateNights = (startDate, endDate) => {
+  if (!startDate || !endDate) return 1;
+  const diffTime = Math.abs(new Date(endDate) - new Date(startDate));
+  return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+};
+
+const recalcBillForBooking = async ({ booking, bill, room, services }) => {
+  const endDate = booking.check_out_date || booking.expected_checkout || new Date();
+  const nights = calculateNights(booking.check_in_date, endDate);
+  const calc = calculateBill({
+    roomPricePerNight: room?.price?.per_night,
+    nights,
+    services,
+    discount: bill?.discount?.amount || 0,
+    taxPercent: room?.price?.tax_percent,
+    applyRounding: true,
+  });
+
+  bill.room_charge = Number(calc.roomTotal) || 0;
+  bill.services_charge = Number(calc.servicesTotal) || 0;
+  bill.tax_amount = Number(calc.taxAmount) || 0;
+  bill.total_amount = Number(calc.total) || 0;
+  bill.roundoff_amount = Number(calc.roundoffAmount) || 0;
+  bill.payable_amount = Number(calc.payableTotal) || 0;
+
+  const amountPaid = Number(bill.amount_paid) || 0;
+  const payableAmount = Number(bill.payable_amount) || bill.total_amount;
+  bill.remaining_amount = Math.max(0, payableAmount - amountPaid);
+  bill.status = getBillStatus(payableAmount, amountPaid);
+
+  await bill.save();
+  return bill;
+};
 
 // Read endpoints
 export const getAllBookings = async (req, res, next) => {
@@ -52,6 +94,8 @@ export const updateBooking = async (req, res, next) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    let shouldRecalc = false;
+
     // Room swap logic
     if (room_id && room_id !== booking.room_id.toString()) {
       const newRoom = await Room.findById(room_id);
@@ -68,32 +112,39 @@ export const updateBooking = async (req, res, next) => {
       }
 
       booking.room_id = room_id;
+      shouldRecalc = true;
     }
 
     // Update details
-    if (expected_checkout) booking.expected_checkout = expected_checkout;
+    if (expected_checkout) {
+      booking.expected_checkout = expected_checkout;
+      shouldRecalc = true;
+    }
     if (booking_source) booking.booking_source = booking_source;
     if (notes !== undefined) booking.notes = notes;
-    if (advance_paid !== undefined) booking.advance_paid = advance_paid;
+    if (advance_paid !== undefined) {
+      booking.advance_paid = advance_paid;
+      shouldRecalc = true;
+    }
 
     await booking.save();
 
-    // Optionally update Bill if advance_paid changed
-    if (advance_paid !== undefined) {
+    if (shouldRecalc) {
       const bill = await Bill.findById(booking.bill_id);
       if (bill) {
-        bill.amount_paid = advance_paid;
-        bill.remaining_amount = bill.total_amount - bill.amount_paid;
-        
-        if (bill.amount_paid >= bill.total_amount && bill.total_amount > 0) {
-          bill.status = "paid";
-        } else if (bill.amount_paid > 0) {
-          bill.status = "partial";
-        } else {
-          bill.status = "unpaid";
+        if (advance_paid !== undefined) {
+          bill.amount_paid = Number(advance_paid) || 0;
         }
-        
-        await bill.save();
+        const bookingWithServices = await Booking.findById(booking._id)
+          .populate("services")
+          .select("services check_in_date check_out_date expected_checkout room_id");
+        const room = await Room.findById(booking.room_id);
+        await recalcBillForBooking({
+          booking: bookingWithServices,
+          bill,
+          room,
+          services: bookingWithServices?.services || [],
+        });
       }
     }
 
@@ -113,11 +164,28 @@ export const createBooking = async (req, res, next) => {
     const {
       room_id,
       guest_id,
+      check_in_date,
       expected_checkout,
       booking_source,
       notes,
       advance_paid,
+      payment_method,
+      payment_note,
     } = req.body;
+
+    let checkInDate = check_in_date ? new Date(check_in_date) : new Date();
+    if (Number.isNaN(checkInDate.getTime())) {
+      checkInDate = new Date();
+    }
+    const expectedCheckoutDate = expected_checkout
+      ? new Date(expected_checkout)
+      : null;
+
+    if (!expectedCheckoutDate || expectedCheckoutDate <= checkInDate) {
+      return res
+        .status(400)
+        .json({ message: "Checkout must be after check-in" });
+    }
 
     const room = await Room.findById(room_id);
     if (!room || room.availability !== "available") {
@@ -130,16 +198,32 @@ export const createBooking = async (req, res, next) => {
     const advance = advance_paid ? Number(advance_paid) : 0;
     const invoiceNumber = await generateInvoiceNumber();
 
+    const nights = calculateNights(checkInDate, expectedCheckoutDate);
+    const initialCalc = calculateBill({
+      roomPricePerNight: room.price?.per_night,
+      nights,
+      services: [],
+      discount: 0,
+      taxPercent: room.price?.tax_percent,
+      applyRounding: true,
+    });
+    const initialTotal = Number(initialCalc.total) || 0;
+    const initialPayable = Number(initialCalc.payableTotal) || initialTotal;
+    const initialRemaining = Math.max(0, initialPayable - advance);
+    const initialStatus = getBillStatus(initialPayable, advance);
+
     const bill = new Bill({
       _id: billId,
       booking_id: bookingId,
-      room_charge: 0,
-      services_charge: 0,
-      tax_amount: 0,
-      total_amount: 0,
+      room_charge: Number(initialCalc.roomTotal) || 0,
+      services_charge: Number(initialCalc.servicesTotal) || 0,
+      tax_amount: Number(initialCalc.taxAmount) || 0,
+      total_amount: initialTotal,
+      roundoff_amount: Number(initialCalc.roundoffAmount) || 0,
+      payable_amount: Number(initialCalc.payableTotal) || initialTotal,
       amount_paid: advance,
-      remaining_amount: -advance,
-      status: advance > 0 ? "partial" : "unpaid",
+      remaining_amount: initialRemaining,
+      status: initialStatus,
       invoice_number: invoiceNumber,
     });
 
@@ -148,8 +232,8 @@ export const createBooking = async (req, res, next) => {
       room_id,
       guest_id,
       bill_id: billId,
-      check_in_date: new Date(),
-      expected_checkout,
+      check_in_date: checkInDate,
+      expected_checkout: expectedCheckoutDate,
       status: "booked",
       booking_source,
       advance_paid: advance,
@@ -160,21 +244,29 @@ export const createBooking = async (req, res, next) => {
     await bill.save();
     await booking.save();
 
-    // Send the Welcome/Booking Confirmation Email asynchronously
-    try {
-      const populatedBooking = await Booking.findById(booking._id).populate("guest_id").populate("room_id");
-      if (populatedBooking && populatedBooking.guest_id && populatedBooking.guest_id.email) {
-        await sendBookingMail({
-          to: populatedBooking.guest_id.email,
-          guestName: `${populatedBooking.guest_id.first_name} ${populatedBooking.guest_id.last_name}`,
-          bookingId: populatedBooking._id.toString(),
-          roomType: populatedBooking.room_id?.room_number || "Selected Room",
-          checkInDate: new Date().toLocaleDateString(),
-          checkOutDate: new Date(expected_checkout).toLocaleDateString()
-        });
-      }
-    } catch (mailError) {
-      console.error("Error sending booking email:", mailError);
+    if (advance > 0) {
+      const rawMethod = String(payment_method || "").toLowerCase();
+      let method = "cash";
+      if (rawMethod.includes("upi")) method = "UPI";
+      else if (rawMethod.includes("card")) method = "card";
+      else if (rawMethod.includes("online")) method = "online_gateway";
+
+      const note = payment_note?.toString().trim();
+      const payment = new Payment({
+        bill_id: billId,
+        booking_id: bookingId,
+        method,
+        amount: advance,
+        payment_date: new Date(),
+        status: "success",
+        collected_by: req.user.id,
+        notes: note || "Advance payment collected at booking",
+      });
+
+      await payment.save();
+      bill.payments = bill.payments || [];
+      bill.payments.push(payment._id);
+      await bill.save();
     }
 
     res.status(201).json(booking);
@@ -188,6 +280,25 @@ export const checkIn = async (req, res, next) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking || booking.status !== "booked") {
       return res.status(400).json({ message: "Invalid booking for check-in" });
+    }
+
+    const guest = await Guest.findById(booking.guest_id);
+    if (!guest) {
+      return res.status(400).json({ message: "Guest not found" });
+    }
+    const hasVerifiedDocs = Boolean(
+      guest?.documents?.id_proof &&
+        guest?.documents?.number &&
+        guest?.documents?.file_url,
+    );
+    const isVerified =
+      guest?.verification_status === "verified" || hasVerifiedDocs;
+
+    if (!isVerified) {
+      return res.status(400).json({
+        message:
+          "Guest verification pending. Please upload ID proof before check-in.",
+      });
     }
 
     booking.status = "checked-in";
@@ -208,7 +319,7 @@ export const checkOut = async (req, res, next) => {
     if (!booking || booking.status !== "checked-in") {
       return res
         .status(400)
-        .json({ message: "Can only check-out checked-in bookings" });
+        .json({ message: "Can only check-out, checked-in bookings" });
     }
 
     booking.status = "checked-out";
@@ -220,49 +331,17 @@ export const checkOut = async (req, res, next) => {
     });
 
     const room = await Room.findById(booking.room_id);
-    const nights =
-      Math.ceil(
-        (booking.check_out_date - booking.check_in_date) /
-          (1000 * 60 * 60 * 24),
-      ) || 1;
-
     const bill = await Bill.findById(booking.bill_id);
-    const calc = calculateBill({
-      roomPricePerNight: room.price.per_night,
-      nights,
-      services: booking.services,
-      discount: bill.discount || 0,
-      taxPercent: room.price.tax_percent,
-    });
-
-    bill.room_charge = calc.roomTotal || 0;
-    bill.services_charge = calc.servicesTotal || 0;
-    bill.total_amount = calc.total;
-    bill.tax_amount = calc.taxAmount || 0;
-    bill.remaining_amount = bill.total_amount - (bill.amount_paid || 0);
-
-    if (bill.amount_paid >= bill.total_amount && bill.total_amount > 0) {
-      bill.status = "paid";
-    } else if (bill.amount_paid > 0) {
-      bill.status = "partial";
-    }
-
-    await bill.save();
-
-    // Send the Checkout/Thank You Invoice Email asynchronously
-    try {
-      const populatedBooking = await Booking.findById(booking._id).populate("guest_id");
-      if (populatedBooking && populatedBooking.guest_id && populatedBooking.guest_id.email) {
-        await sendInvoiceMail({
-          to: populatedBooking.guest_id.email,
-          guestName: `${populatedBooking.guest_id.first_name} ${populatedBooking.guest_id.last_name}`,
-          billId: bill.invoice_number || bill._id.toString(),
-          totalAmount: bill.total_amount.toString(),
-          checkOutDate: new Date().toLocaleDateString()
-        });
+    if (bill) {
+      if (!bill.finalized_at) {
+        bill.finalized_at = new Date();
       }
-    } catch (mailError) {
-      console.error("Error sending invoice email:", mailError);
+      await recalcBillForBooking({
+        booking,
+        bill,
+        room,
+        services: booking.services || [],
+      });
     }
 
     res.json({ booking, bill });
@@ -296,23 +375,55 @@ export const cancelBooking = async (req, res, next) => {
 
 export const addService = async (req, res, next) => {
   try {
-    const { name, category, price, quantity, notes } = req.body;
+    const { name, type, category, unit_price, price, quantity, description, notes, served_at } = req.body;
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
+    const rawType = (type || category || "other").toString().toLowerCase();
+    const typeMap = {
+      food: "fooding",
+      fooding: "fooding",
+      laundry: "laundry",
+      spa: "spa",
+      transport: "other",
+      other: "other",
+    };
+    const serviceType = typeMap[rawType] || "other";
+
+    const unitPrice = Number(unit_price ?? price) || 0;
+    const qty = Number(quantity) || 1;
+    const totalPrice = unitPrice * qty;
+
     const service = new Service({
       booking_id: booking._id,
       name,
-      category,
-      price: Number(price),
-      quantity: Number(quantity),
-      notes,
+      type: serviceType,
+      unit_price: unitPrice,
+      quantity: qty,
+      total_price: totalPrice,
+      description: description ?? notes,
+      served_at: served_at ? new Date(served_at) : new Date(),
+      added_by: req.user.id,
     });
 
     await service.save();
     booking.services.push(service._id);
     await booking.save();
+
+    const bill = await Bill.findById(booking.bill_id);
+    if (bill) {
+      const bookingWithServices = await Booking.findById(booking._id)
+        .populate("services")
+        .select("services check_in_date check_out_date expected_checkout room_id");
+      const room = await Room.findById(booking.room_id);
+      await recalcBillForBooking({
+        booking: bookingWithServices,
+        bill,
+        room,
+        services: bookingWithServices?.services || [],
+      });
+    }
 
     res.json(service);
   } catch (error) {
@@ -331,6 +442,20 @@ export const removeService = async (req, res, next) => {
       (s) => s.toString() !== req.params.serviceId,
     );
     await booking.save();
+
+    const bill = await Bill.findById(booking.bill_id);
+    if (bill) {
+      const bookingWithServices = await Booking.findById(booking._id)
+        .populate("services")
+        .select("services check_in_date check_out_date expected_checkout room_id");
+      const room = await Room.findById(booking.room_id);
+      await recalcBillForBooking({
+        booking: bookingWithServices,
+        bill,
+        room,
+        services: bookingWithServices?.services || [],
+      });
+    }
 
     res.json({ message: "Service removed" });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import { showError } from "../utils/toast";
 
 const useAdminStore = create((set) => ({
   dashboardData: null,
@@ -14,6 +15,7 @@ const useAdminStore = create((set) => ({
       });
       set({ dashboardData: res.data, isLoading: false });
     } catch (error) {
+      showError(error, "Failed to fetch dashboard data");
       console.error("Error fetching admin dashboard:", error);
       set({
         error: error.response?.data?.message || "Failed to fetch dashboard data",

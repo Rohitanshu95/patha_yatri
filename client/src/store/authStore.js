@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axiosInstance from "../config/axios";
+import { showError, showSuccess } from "../utils/toast";
 
 const useAuthStore = create(
   persist(
@@ -20,8 +21,10 @@ const useAuthStore = create(
             isLoading: false,
             error: null,
           });
+          showSuccess(res.data?.message, "Login successful");
           return true;
         } catch (error) {
+          showError(error, "Login failed");
           set({
             isLoading: false,
             error: error.response?.data?.message || "Login failed",
@@ -32,8 +35,10 @@ const useAuthStore = create(
 
       logout: async () => {
         try {
-          await axiosInstance.post("/auth/logout");
+          const res = await axiosInstance.post("/auth/logout");
+          showSuccess(res.data?.message, "Logout successful");
         } catch (error) {
+          showError(error, "Logout failed");
           console.error("Logout error", error);
         } finally {
           set({ user: null, isAuthenticated: false, error: null });
@@ -45,6 +50,7 @@ const useAuthStore = create(
           const res = await axiosInstance.get("/auth/me");
           set({ user: res.data.user, isAuthenticated: true });
         } catch (error) {
+          showError(error, "Failed to fetch session");
           set({ user: null, isAuthenticated: false });
         }
       },

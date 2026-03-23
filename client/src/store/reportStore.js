@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axiosInstance from "../config/axios";
+import { showError } from "../utils/toast";
 
 export const useReportStore = create((set) => ({
   revenueData: null,
@@ -24,6 +25,7 @@ export const useReportStore = create((set) => ({
         isLoading: false
       });
     } catch (error) {
+      showError(error, "Failed to fetch reports");
       set({ error: error.message, isLoading: false });
     }
   }
