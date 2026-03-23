@@ -18,20 +18,11 @@
   
   --color-error: #BA1A1A;
 
-  --font-serif: "Noto Serif", serif;
-  --font-sans: "Manrope", sans-serif;
-  --font-headline: "Noto Serif", serif;
-  --font-body: "Manrope", sans-serif;
-  --font-label: "Manrope", sans-serif;
-  
-  --radius-none: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-full: 0px;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-headline: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "Inter", sans-serif;
 }
 
 @layer base {
@@ -45,11 +36,8 @@
     font-family: var(--font-serif);
     color: var(--color-on-surface);
   }
-
-  * {
-    border-radius: 0 !important;
-  }
 }
+
 
 @layer utilities {
   .bg-gold-gradient {
