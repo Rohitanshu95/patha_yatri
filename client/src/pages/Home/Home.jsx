@@ -1,22 +1,35 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../../store/authStore';
+import Hero from '../../components/LandingPage/Hero';
+import HotelShowcase from '../../components/LandingPage/HotelShowcase';
+import FacilitiesMarquee from '../../components/LandingPage/FacilitiesMarquee';
+import TestimonialsSection from '../../components/LandingPage/TestimonialsSection';
+import Footer from '../../components/LandingPage/Footer';
+import Navigation from '../../components/LandingPage/Navigation';
 
 const Home = () => {
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuthStore();
-
-  // useEffect(() => {
-  //   if (isAuthenticated && user) {
-  //     navigate(`/app/${user.role}`);
-  //   } else {
-  //     navigate("/auth/login");
-  //   }
-  // }, [isAuthenticated, user, navigate]);
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent flex items-center justify-center animate-spin rounded-full"></div>
+    <div className="min-h-screen bg-white text-[#1E293B] selection:bg-[#E8A317] selection:text-white overflow-x-hidden">
+      <Navigation />
+      
+      {/* Hero Section */}
+      <Hero />
+      
+      {/* Dynamic Animated Hotel Showcase */}
+      <HotelShowcase />
+      
+      {/* Scrolling Facilities Marquee */}
+      <FacilitiesMarquee />
+
+      {/* Testimonials Review Section */}
+      <TestimonialsSection />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

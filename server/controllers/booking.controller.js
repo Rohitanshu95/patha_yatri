@@ -7,7 +7,11 @@ import Room from "../models/Room.js";
 import Service from "../models/Service.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import { calculateBill } from "../utils/billCalculator.js";
-import { sendBookingMail, sendInvoiceMail, sendCancellationMail } from "../utils/mail.js";
+import {
+  sendBookingMail,
+  sendInvoiceMail,
+  sendCancellationMail,
+} from "../utils/mail.js";
 import { generateInvoicePdf } from "../utils/pdf/invoicePdf.js";
 
 const getBillStatus = (totalAmount, amountPaid) => {
@@ -23,7 +27,8 @@ const calculateNights = (startDate, endDate) => {
 };
 
 const recalcBillForBooking = async ({ booking, bill, room, services }) => {
-  const endDate = booking.check_out_date || booking.expected_checkout || new Date();
+  const endDate =
+    booking.check_out_date || booking.expected_checkout || new Date();
   const nights = calculateNights(booking.check_in_date, endDate);
   const calc = calculateBill({
     roomPricePerNight: room?.price?.per_night,
@@ -138,7 +143,9 @@ export const updateBooking = async (req, res, next) => {
         }
         const bookingWithServices = await Booking.findById(booking._id)
           .populate("services")
-          .select("services check_in_date check_out_date expected_checkout room_id");
+          .select(
+            "services check_in_date check_out_date expected_checkout room_id",
+          );
         const room = await Room.findById(booking.room_id);
         await recalcBillForBooking({
           booking: bookingWithServices,
@@ -310,8 +317,8 @@ export const checkIn = async (req, res, next) => {
     }
     const hasVerifiedDocs = Boolean(
       guest?.documents?.id_proof &&
-        guest?.documents?.number &&
-        guest?.documents?.file_url,
+      guest?.documents?.number &&
+      guest?.documents?.file_url,
     );
     const isVerified =
       guest?.verification_status === "verified" || hasVerifiedDocs;
@@ -374,7 +381,8 @@ export const checkOut = async (req, res, next) => {
       ? booking.guest_id
       : await Guest.findById(booking.guest_id);
     if (guest?.email && bill) {
-      const payableAmount = Number(bill.payable_amount) || bill.total_amount || 0;
+      const payableAmount =
+        Number(bill.payable_amount) || bill.total_amount || 0;
       try {
         const payments = await Payment.find({ bill_id: bill._id })
           .sort({ payment_date: -1, createdAt: -1 })
@@ -455,7 +463,17 @@ export const cancelBooking = async (req, res, next) => {
 
 export const addService = async (req, res, next) => {
   try {
-    const { name, type, category, unit_price, price, quantity, description, notes, served_at } = req.body;
+    const {
+      name,
+      type,
+      category,
+      unit_price,
+      price,
+      quantity,
+      description,
+      notes,
+      served_at,
+    } = req.body;
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
@@ -495,7 +513,9 @@ export const addService = async (req, res, next) => {
     if (bill) {
       const bookingWithServices = await Booking.findById(booking._id)
         .populate("services")
-        .select("services check_in_date check_out_date expected_checkout room_id");
+        .select(
+          "services check_in_date check_out_date expected_checkout room_id",
+        );
       const room = await Room.findById(booking.room_id);
       await recalcBillForBooking({
         booking: bookingWithServices,
@@ -527,7 +547,9 @@ export const removeService = async (req, res, next) => {
     if (bill) {
       const bookingWithServices = await Booking.findById(booking._id)
         .populate("services")
-        .select("services check_in_date check_out_date expected_checkout room_id");
+        .select(
+          "services check_in_date check_out_date expected_checkout room_id",
+        );
       const room = await Room.findById(booking.room_id);
       await recalcBillForBooking({
         booking: bookingWithServices,
