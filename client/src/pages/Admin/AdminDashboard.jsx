@@ -41,17 +41,11 @@ const AdminDashboard = () => {
     staffStatus = []
   } = dashboardData || {};
 
-  const data = {
-    totalRevenueToday,
-    revenueTrendPercent,
-    totalBookings,
-    occupancyRate,
-    activeStaff,
-    revenueTrend,
-    categoryOccupancy,
-    recentActivity,
-    staffStatus
-  };
+  const revenueMax = Math.max(
+    ...revenueTrend.map((item) => item.total || 0),
+    1
+  );
+  const hasRevenueTrend = revenueTrend.length > 0;
 
   return (
     <div className="pb-16 px-10 space-y-10 luxury-gradient pt-8">
@@ -117,6 +111,10 @@ const AdminDashboard = () => {
                     <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Room Revenue</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary/40"></span>
+                    <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Tax</span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-on-surface"></span>
                     <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Service Revenue</span>
                   </div>
@@ -133,29 +131,39 @@ const AdminDashboard = () => {
                 </div>
                 
                 <div className="relative w-full h-full flex items-end justify-between px-6 gap-6 pb-0 z-10 pt-4">
-                    {(revenueTrend || []).map((t, idx) => {
-                       // Find max to scale
-                       const max = Math.max(...(revenueTrend || []).map(d => d.total || 0), 1);
-                       const roomH = ((t.roomRevenue || 0) / max) * 100;
-                       const servH = ((t.serviceRevenue || 0) / max) * 100;
-                       return (
-                         <div key={idx} className="w-full flex flex-col justify-end group relative cursor-pointer h-full">
-                           <div className="w-full bg-on-surface/90 transition-all hover:bg-on-surface duration-300" style={{ height: `${servH}%` }}></div>
-                           <div className="w-full bg-primary transition-all hover:bg-primary-container duration-300 shadow-[0_-2px_4px_rgba(197,160,89,0.3)]" style={{ height: `${roomH}%` }}></div>
-                           
-                           {/* Tooltip */}
-                           <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-surface text-on-surface text-xs px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-outline/50 shadow-lg font-semibold tracking-wide">
-                             ₹{(t.total || 0).toLocaleString('en-IN')}
-                           </div>
-                         </div>
-                       )
-                    })}
+                    {hasRevenueTrend ? (
+                      revenueTrend.map((t, idx) => {
+                        const roomH = ((t.roomRevenue || 0) / revenueMax) * 100;
+                        const taxH = ((t.taxRevenue || 0) / revenueMax) * 100;
+                        const servH = ((t.serviceRevenue || 0) / revenueMax) * 100;
+                        return (
+                          <div key={idx} className="w-full flex flex-col justify-end group relative cursor-pointer h-full">
+                            <div className="w-full bg-on-surface/90 transition-all hover:bg-on-surface duration-300" style={{ height: `${servH}%` }}></div>
+                            <div className="w-full bg-primary/40 transition-all hover:bg-primary/50 duration-300" style={{ height: `${taxH}%` }}></div>
+                            <div className="w-full bg-primary transition-all hover:bg-primary-container duration-300 shadow-[0_-2px_4px_rgba(197,160,89,0.3)]" style={{ height: `${roomH}%` }}></div>
+                            
+                            {/* Tooltip */}
+                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-surface text-on-surface text-xs px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-outline/50 shadow-lg font-semibold tracking-wide">
+                              ₹{(t.total || 0).toLocaleString('en-IN')}
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm text-on-surface-variant italic font-serif">
+                        No revenue trend data available.
+                      </div>
+                    )}
                 </div>
               </div>
               
-              <div className="flex justify-between mt-6 px-6 text-[10px] text-on-surface-variant font-bold uppercase tracking-[0.2em]">
-                {(revenueTrend || []).map((t, idx) => <span key={idx} className="w-full text-center block">{t.day}</span>)}
-              </div>
+              {hasRevenueTrend && (
+                <div className="flex justify-between mt-6 px-6 text-[10px] text-on-surface-variant font-bold uppercase tracking-[0.2em]">
+                  {revenueTrend.map((t, idx) => (
+                    <span key={idx} className="w-full text-center block">{t.day}</span>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right: Occupancy Bar Chart */}

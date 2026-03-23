@@ -138,12 +138,15 @@ export const getAdminDashboard = async (req, res, next) => {
         const daysBills = billsLast7Days.filter(b => b.updatedAt >= dayStart && b.updatedAt <= dayEnd);
         const roomRevenue = daysBills.reduce((sum, b) => sum + (b.room_charge || 0), 0);
         const serviceRevenue = daysBills.reduce((sum, b) => sum + (b.services_charge || 0), 0);
+        const taxRevenue = daysBills.reduce((sum, b) => sum + (b.tax_amount || 0), 0);
+        const total = daysBills.reduce((sum, b) => sum + (b.amount_paid || 0), 0);
         
-        revenueTrend.push({ 
-            day: dayName, 
-            roomRevenue, 
-            serviceRevenue,
-            total: roomRevenue + serviceRevenue
+        revenueTrend.push({
+          day: dayName,
+          roomRevenue,
+          serviceRevenue,
+          taxRevenue,
+          total
         });
     }
 

@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import axios from "axios";
 import { showError } from "../utils/toast";
+import axios from './../config/axios';
 
 const useAdminStore = create((set) => ({
   dashboardData: null,
@@ -10,7 +10,7 @@ const useAdminStore = create((set) => ({
   fetchDashboardData: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get("/api/dashboard/admin", {
+      const res = await axios.get("/dashboard/admin", {
         withCredentials: true,
       });
       set({ dashboardData: res.data, isLoading: false });
