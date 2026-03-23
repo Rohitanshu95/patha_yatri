@@ -7,7 +7,8 @@ import Room from "../models/Room.js";
 import Service from "../models/Service.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import { calculateBill } from "../utils/billCalculator.js";
-import { sendBookingMail, sendInvoiceMail } from "../utils/mail.js";
+import { sendBookingMail, sendInvoiceMail, sendCancellationMail } from "../utils/mail.js";
+import { generateInvoicePdf } from "../utils/pdf/invoicePdf.js";
 
 const getBillStatus = (totalAmount, amountPaid) => {
   if (totalAmount > 0 && amountPaid >= totalAmount) return "paid";
@@ -244,6 +245,27 @@ export const createBooking = async (req, res, next) => {
     await bill.save();
     await booking.save();
 
+    if (booking?.guest_id) {
+      const guest = await Guest.findById(booking.guest_id);
+      const room = await Room.findById(booking.room_id);
+      if (guest?.email) {
+        try {
+          await sendBookingMail({
+            to: guest.email,
+            guestName: guest.name || "Guest",
+            bookingId: booking._id.toString(),
+            roomType: room?.room_category || room?.name || "Room",
+            checkInDate: checkInDate.toLocaleDateString("en-IN"),
+            checkOutDate: expectedCheckoutDate.toLocaleDateString("en-IN"),
+          });
+        } catch (error) {
+          console.error("❌ Booking email failed:", error);
+        }
+      } else {
+        console.warn("⚠️ Booking email skipped: guest email missing");
+      }
+    }
+
     if (advance > 0) {
       const rawMethod = String(payment_method || "").toLowerCase();
       let method = "cash";
@@ -315,7 +337,9 @@ export const checkIn = async (req, res, next) => {
 
 export const checkOut = async (req, res, next) => {
   try {
-    const booking = await Booking.findById(req.params.id).populate("services");
+    const booking = await Booking.findById(req.params.id).populate(
+      "services guest_id room_id",
+    );
     if (!booking || booking.status !== "checked-in") {
       return res
         .status(400)
@@ -330,7 +354,9 @@ export const checkOut = async (req, res, next) => {
       availability: "available",
     });
 
-    const room = await Room.findById(booking.room_id);
+    const room = booking?.room_id?.price
+      ? booking.room_id
+      : await Room.findById(booking.room_id);
     const bill = await Bill.findById(booking.bill_id);
     if (bill) {
       if (!bill.finalized_at) {
@@ -342,6 +368,42 @@ export const checkOut = async (req, res, next) => {
         room,
         services: booking.services || [],
       });
+    }
+
+    const guest = booking?.guest_id?.email
+      ? booking.guest_id
+      : await Guest.findById(booking.guest_id);
+    if (guest?.email && bill) {
+      const payableAmount = Number(bill.payable_amount) || bill.total_amount || 0;
+      try {
+        const payments = await Payment.find({ bill_id: bill._id })
+          .sort({ payment_date: -1, createdAt: -1 })
+          .limit(1);
+        const pdfBuffer = await generateInvoicePdf({
+          booking,
+          bill,
+          room,
+          payments,
+        });
+        await sendInvoiceMail({
+          to: guest.email,
+          guestName: guest.name || "Guest",
+          billId: bill.invoice_number || bill._id.toString(),
+          totalAmount: payableAmount.toLocaleString("en-IN"),
+          checkOutDate: booking.check_out_date.toLocaleDateString("en-IN"),
+          attachments: [
+            {
+              filename: `invoice-${bill.invoice_number || bill._id}.pdf`,
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            },
+          ],
+        });
+      } catch (error) {
+        console.error("❌ Invoice email failed:", error);
+      }
+    } else if (!guest?.email) {
+      console.warn("⚠️ Invoice email skipped: guest email missing");
     }
 
     res.json({ booking, bill });
@@ -365,6 +427,24 @@ export const cancelBooking = async (req, res, next) => {
     if (bill) {
       bill.status = "cancelled";
       await bill.save();
+    }
+
+    const guest = await Guest.findById(booking.guest_id);
+    const room = await Room.findById(booking.room_id);
+    if (guest?.email) {
+      try {
+        await sendCancellationMail({
+          to: guest.email,
+          guestName: guest.name || "Guest",
+          bookingId: booking._id.toString(),
+          roomType: room?.room_category || room?.name || "Room",
+          cancelledAt: new Date().toLocaleDateString("en-IN"),
+        });
+      } catch (error) {
+        console.error("❌ Cancellation email failed:", error);
+      }
+    } else {
+      console.warn("⚠️ Cancellation email skipped: guest email missing");
     }
 
     res.json(booking);

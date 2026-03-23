@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { bookingMailTemplate } from "./templates/booking_mail.js";
 import { invoiceMailTemplate } from "./templates/invoice_receiving_mail.js";
+import { bookingCancelMailTemplate } from "./templates/booking_cancel_mail.js";
 
 // Ensure environment variables are loaded (usually handled in index.js)
 // Default fallback to the official company email provided by user
@@ -61,7 +62,7 @@ export const sendBookingMail = async ({ to, guestName, bookingId, roomType, chec
  * @param {string} params.totalAmount - Total final amount
  * @param {string} params.checkOutDate - Formatted checkout date
  */
-export const sendInvoiceMail = async ({ to, guestName, billId, totalAmount, checkOutDate }) => {
+export const sendInvoiceMail = async ({ to, guestName, billId, totalAmount, checkOutDate, attachments = [] }) => {
   try {
     const htmlContent = invoiceMailTemplate({ 
       guestName, 
@@ -75,6 +76,7 @@ export const sendInvoiceMail = async ({ to, guestName, billId, totalAmount, chec
       to,
       subject: "Thank You for Your Stay - Your Invoice Inside",
       html: htmlContent,
+      ...(attachments.length ? { attachments } : {}),
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -82,6 +84,40 @@ export const sendInvoiceMail = async ({ to, guestName, billId, totalAmount, chec
     return info;
   } catch (error) {
     console.error("❌ Error sending invoice email:", error);
+    throw error;
+  }
+};
+
+/**
+ * Sends a booking cancellation email
+ * @param {Object} params - The cancellation details
+ * @param {string} params.to - Guest email
+ * @param {string} params.guestName - Guest name
+ * @param {string} params.bookingId - Unique booking ID
+ * @param {string} params.roomType - Room category/details
+ * @param {string} params.cancelledAt - Formatted cancellation date
+ */
+export const sendCancellationMail = async ({ to, guestName, bookingId, roomType, cancelledAt }) => {
+  try {
+    const htmlContent = bookingCancelMailTemplate({
+      guestName,
+      bookingId,
+      roomType,
+      cancelledAt,
+    });
+
+    const mailOptions = {
+      from: `"Patha Yatri Hotel" <${SENDER_EMAIL}>`,
+      to,
+      subject: "Booking Cancelled - Patha Yatri Hotel",
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Cancellation email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("❌ Error sending cancellation email:", error);
     throw error;
   }
 };
