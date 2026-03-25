@@ -14,7 +14,7 @@ export const sendBookingConfirmation = async (contact, details) => {
   }
   try {
     await client.messages.create({
-      body: `Patha Yatri: Your booking is confirmed. Room: ${details.roomNumber}`,
+      body: `Patha Yatri: Booking confirmed. Room ${details.roomNumber} (${details.roomCategory}). Check-in ${details.checkInDate}, Check-out ${details.checkOutDate}.`,
       from: process.env.TWILIO_PHONE,
       to: contact,
     });
@@ -30,7 +30,7 @@ export const sendCheckoutReminder = async (contact, details) => {
   }
   try {
     await client.messages.create({
-      body: `Patha Yatri: Reminder for checkout today at 11 AM.`,
+      body: `Patha Yatri: Checkout completed for Room ${details.roomNumber}. We hope you enjoyed your stay!`,
       from: process.env.TWILIO_PHONE,
       to: contact,
     });

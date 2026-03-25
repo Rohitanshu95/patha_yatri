@@ -7,6 +7,7 @@ import {
   createRazorpayOrder, 
   verifyRazorpay 
 } from "../controllers/payment.controller.js";
+import { auditWrite } from "../middleware/auditLogger.js";
 
 const router = express.Router();
 
@@ -16,10 +17,10 @@ const MANAGER_PLUS = ["manager", "admin"];
 router.use(authenticate);
 
 router.get("/", authorize(...RECEPTIONIST_PLUS), listPayments);
-router.post("/record", authorize(...RECEPTIONIST_PLUS), recordPayment);
-router.post("/:id/refund", authorize(...MANAGER_PLUS), refundPayment);
+router.post("/record", authorize(...RECEPTIONIST_PLUS), auditWrite("Payment"), recordPayment);
+router.post("/:id/refund", authorize(...MANAGER_PLUS), auditWrite("Payment"), refundPayment);
 
-router.post("/online/create-order", authorize(...RECEPTIONIST_PLUS), createRazorpayOrder);
-router.post("/online/verify", authorize(...RECEPTIONIST_PLUS), verifyRazorpay);
+router.post("/online/create-order", authorize(...RECEPTIONIST_PLUS), auditWrite("Payment"), createRazorpayOrder);
+router.post("/online/verify", authorize(...RECEPTIONIST_PLUS), auditWrite("Payment"), verifyRazorpay);
 
 export default router;

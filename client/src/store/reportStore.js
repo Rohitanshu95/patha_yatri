@@ -22,7 +22,8 @@ export const useReportStore = create((set) => ({
         revenueData: revRes.data,
         gstData: gstRes.data,
         occupancyData: occRes.data,
-        isLoading: false
+        isLoading: false,
+        error: null
       });
     } catch (error) {
       showError(error, "Failed to fetch reports");

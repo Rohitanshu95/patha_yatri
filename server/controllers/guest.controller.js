@@ -63,9 +63,8 @@ export const listGuests = async (req, res, next) => {
     const filter = {};
     if (search) {
       filter.$or = [
-        { first_name: new RegExp(search, "i") },
-        { last_name: new RegExp(search, "i") },
-        { phone_number: new RegExp(search, "i") },
+        { name: new RegExp(search, "i") },
+        { contact: new RegExp(search, "i") },
       ];
     }
     const guests = await Guest.find(filter).lean();

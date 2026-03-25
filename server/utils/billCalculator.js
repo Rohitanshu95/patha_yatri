@@ -1,4 +1,4 @@
-export const calculateBill = ({ roomPricePerNight, nights, services = [], discount = 0, taxPercent, applyRounding = false }) => {
+export const calculateBill = ({ roomPricePerNight, nights, services = [], discount = 0, taxPercent, surcharge = 0, applyRounding = false }) => {
   const roomTotal = (Number(roomPricePerNight) || 0) * (Number(nights) || 1);
 
   const servicesTotal = services.reduce((acc, curr) => {
@@ -9,7 +9,8 @@ export const calculateBill = ({ roomPricePerNight, nights, services = [], discou
     return acc + lineTotal;
   }, 0);
 
-  const subtotal = roomTotal + servicesTotal;
+  const surchargeTotal = Number(surcharge) || 0;
+  const subtotal = roomTotal + servicesTotal + surchargeTotal;
   
   // Tax logic
   const taxAmount = (subtotal * (Number(taxPercent) || 0)) / 100;
@@ -22,6 +23,7 @@ export const calculateBill = ({ roomPricePerNight, nights, services = [], discou
   return {
     roomTotal,
     servicesTotal,
+    surchargeTotal,
     subtotal,
     taxAmount,
     discount,

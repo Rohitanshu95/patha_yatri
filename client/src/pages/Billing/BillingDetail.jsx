@@ -22,6 +22,7 @@ const BillingDetail = () => {
   const [booking, setBooking] = useState(null);
   const [payments, setPayments] = useState([]);
   const [discountInput, setDiscountInput] = useState(0);
+  const [discountType, setDiscountType] = useState("manual");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
@@ -54,6 +55,7 @@ const BillingDetail = () => {
   useEffect(() => {
     const billDiscount = Number(bill?.discount?.amount) || 0;
     setDiscountInput(billDiscount);
+    setDiscountType(bill?.discount?.type || "manual");
   }, [bill?._id]);
 
   const formatCurrency = (value, maximumFractionDigits = 2) => {
@@ -188,10 +190,10 @@ const BillingDetail = () => {
     () => calculateBillingSummary({
       booking,
       bill,
-      discountOverride: discountInput,
+      discountOverride: discountType === "manual" ? discountInput : bill?.discount?.amount,
       applyRounding: true,
     }),
-    [booking, bill, discountInput],
+    [booking, bill, discountInput, discountType],
   );
 
   const {
@@ -230,11 +232,12 @@ const BillingDetail = () => {
     if (!bill?._id) return;
     setIsApplyingDiscount(true);
     const res = await applyDiscount(bill._id, {
-      type: "manual",
+      type: discountType,
       amount: manualDiscount,
     });
     if (res) {
       setBill(res);
+      setDiscountType(res?.discount?.type || discountType);
     }
     setIsApplyingDiscount(false);
   };
@@ -456,12 +459,28 @@ const BillingDetail = () => {
                   Additional Discount
                 </p>
                 <div className="space-y-4">
+                  <div>
+                    <label className="text-[9px] uppercase font-bold text-[#777777] tracking-[0.2em] block mb-2">
+                      Discount Type
+                    </label>
+                    <select
+                      value={discountType}
+                      onChange={(e) => setDiscountType(e.target.value)}
+                      disabled={isFullyPaid}
+                      className="w-full bg-[#F8F9FA] border-b border-[#D1C5B4] focus:border-[#C5A059] focus:ring-0 text-sm text-[#222222] py-3 px-4 outline-none disabled:opacity-60"
+                    >
+                      <option value="seasonal">Seasonal</option>
+                      <option value="loyalty">Loyalty</option>
+                      <option value="corporate">Corporate</option>
+                      <option value="manual">Manual</option>
+                    </select>
+                  </div>
                   <input
                     type="number"
                     min={0}
                     value={discountInput}
                     onChange={(e) => setDiscountInput(e.target.value)}
-                    disabled={isFullyPaid}
+                    disabled={isFullyPaid || discountType !== "manual"}
                     className="w-full bg-[#F8F9FA] border-b border-[#D1C5B4] focus:border-[#C5A059] focus:ring-0 text-lg font-serif text-[#222222] py-3 px-4 outline-none disabled:opacity-60"
                     placeholder="Enter discount amount"
                   />

@@ -20,9 +20,18 @@ const Reports = () => {
     fetchReports(dateRange.startDate, dateRange.endDate);
   };
 
-  const totalRev = revenueData?.[0]?.totalNetRevenue || 0;
-  const gstTotal = (gstData?.[0]?.totalCGST || 0) + (gstData?.[0]?.totalSGST || 0);
-  const totalBookings = occupancyData?.[0]?.totalBookings || 0;
+   const totalRev = revenueData?.totalRevenue || 0;
+   const gstTotal = gstData?.summary?.totalGST || 0;
+   const totalBookings = occupancyData?.totalBookings || 0;
+
+   const revenueBreakdown = [
+      { label: "Room", value: revenueData?.totalRoomCharges || 0 },
+      { label: "Services", value: revenueData?.totalServices || 0 },
+      { label: "Tax", value: revenueData?.totalTax || 0 }
+   ];
+   const revenueTotal = revenueBreakdown.reduce((acc, item) => acc + item.value, 0) || 1;
+   const occupancyByStatus = occupancyData?.byStatus || [];
+   const gstItems = gstData?.items || [];
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-[#F8F9FA]">
@@ -91,7 +100,7 @@ const Reports = () => {
             </div>
          </section>
 
-         {/* Detailed Tab View Placeholder */}
+         {/* Detailed Tab View */}
          <section className="bg-white border border-[#D1C5B4]/15 shadow-sm p-8">
             <div className="flex gap-8 border-b border-[#D1C5B4]/20 mb-8 pb-4">
                 <button onClick={() => setActiveTab('revenue')} className={`text-[10px] font-bold uppercase tracking-[0.2em] pb-4 -mb-4 transition-all ${activeTab === 'revenue' ? 'text-[#C5A059] border-b-2 border-[#C5A059]' : 'text-[#777777] border-transparent hover:text-[#222222]'}`}>
@@ -105,15 +114,92 @@ const Reports = () => {
                 </button>
             </div>
 
-            <div className="min-h-[300px] flex items-center justify-center">
-               <div className="text-center">
-                   <div className="w-16 h-16 bg-[#F8F9FA] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#e3dcd1]">
-                       <span className="material-symbols-outlined text-[#C5A059] text-2xl">insights</span>
-                   </div>
-                   <h4 className="font-serif text-[#222222] text-xl mb-1">No detailed charts available yet</h4>
-                   <p className="text-[#777777] text-xs uppercase tracking-widest font-bold">More {activeTab} data will populate soon.</p>
-               </div>
-            </div>
+                  <div className="min-h-[300px]">
+                     {activeTab === "revenue" && (
+                        <div className="space-y-6">
+                           {revenueBreakdown.map((item) => (
+                              <div key={item.label} className="space-y-2">
+                                 <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-[#777777]">
+                                    <span>{item.label}</span>
+                                    <span className="text-[#222222]">₹{item.value.toLocaleString()}</span>
+                                 </div>
+                                 <div className="w-full h-2 bg-[#F8F9FA]">
+                                    <div className="h-2 bg-[#C5A059]" style={{ width: `${(item.value / revenueTotal) * 100}%` }}></div>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                     )}
+
+                     {activeTab === "gst" && (
+                        <div className="space-y-4">
+                           <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-[#777777]">
+                              <span>Total GST</span>
+                              <span className="text-[#222222]">₹{gstTotal.toLocaleString()}</span>
+                           </div>
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="border border-[#D1C5B4]/20 p-4">
+                                 <p className="text-[10px] uppercase tracking-widest text-[#777777] font-bold">CGST</p>
+                                 <p className="text-2xl font-serif text-[#222222]">₹{(gstData?.summary?.totalCGST || 0).toLocaleString()}</p>
+                              </div>
+                              <div className="border border-[#D1C5B4]/20 p-4">
+                                 <p className="text-[10px] uppercase tracking-widest text-[#777777] font-bold">SGST</p>
+                                 <p className="text-2xl font-serif text-[#222222]">₹{(gstData?.summary?.totalSGST || 0).toLocaleString()}</p>
+                              </div>
+                           </div>
+                           <div className="mt-6">
+                              <div className="text-[10px] uppercase tracking-widest font-bold text-[#777777] mb-3">Recent GST Entries</div>
+                              <div className="overflow-x-auto">
+                                 <table className="w-full text-left">
+                                    <thead>
+                                       <tr className="text-[10px] uppercase tracking-widest text-[#777777] border-b border-[#D1C5B4]/20">
+                                          <th className="py-3">Invoice</th>
+                                          <th className="py-3">Tax</th>
+                                          <th className="py-3">Total</th>
+                                          <th className="py-3">Date</th>
+                                       </tr>
+                                    </thead>
+                                    <tbody>
+                                       {gstItems.slice(0, 6).map((item) => (
+                                          <tr key={item._id} className="border-b border-[#D1C5B4]/10 text-sm text-[#222222]">
+                                             <td className="py-3">{item.invoice_number}</td>
+                                             <td className="py-3">₹{Number(item.tax_amount || 0).toLocaleString()}</td>
+                                             <td className="py-3">₹{Number(item.total_amount || 0).toLocaleString()}</td>
+                                             <td className="py-3">{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "-"}</td>
+                                          </tr>
+                                       ))}
+                                       {gstItems.length === 0 && (
+                                          <tr>
+                                             <td colSpan="4" className="py-8 text-center text-[#777777] text-sm">No GST entries available</td>
+                                          </tr>
+                                       )}
+                                    </tbody>
+                                 </table>
+                              </div>
+                           </div>
+                        </div>
+                     )}
+
+                     {activeTab === "occupancy" && (
+                        <div className="space-y-6">
+                           <div className="text-[10px] uppercase tracking-widest font-bold text-[#777777]">Bookings by Status</div>
+                           <div className="space-y-3">
+                              {occupancyByStatus.map((item) => (
+                                 <div key={item.status} className="flex items-center gap-4">
+                                    <div className="w-24 text-[10px] uppercase tracking-widest font-bold text-[#777777]">{item.status}</div>
+                                    <div className="flex-1 h-2 bg-[#F8F9FA]">
+                                       <div className="h-2 bg-[#C5A059]" style={{ width: `${(item.count / (totalBookings || 1)) * 100}%` }}></div>
+                                    </div>
+                                    <div className="text-sm font-semibold text-[#222222]">{item.count}</div>
+                                 </div>
+                              ))}
+                              {occupancyByStatus.length === 0 && (
+                                 <div className="text-sm text-[#777777]">No occupancy data available</div>
+                              )}
+                           </div>
+                        </div>
+                     )}
+                  </div>
          </section>
       </div>
     </div>

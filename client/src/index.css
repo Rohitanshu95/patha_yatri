@@ -27,7 +27,7 @@
 
 @layer base {
   html {
-    font-family: var(--font-sans);
+    /* font-family: var(--font-sans); */
     color: var(--color-on-surface);
     background-color: var(--color-surface);
   }

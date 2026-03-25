@@ -43,7 +43,7 @@ const Hero = () => {
       {/* Background Decorative Element */}
       <div className="absolute top-0 right-0 w-1/3 h-[600px] bg-[#b49a78]/20 blur-[150px] rounded-full pointer-events-none" />
 
-      <div className="w-full flex justify-center mb-10 md:mb-16 relative z-20 h-16 items-center overflow-hidden">
+      <div className="w-full flex justify-center relative z-20 h-16 items-center overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={textIndex}

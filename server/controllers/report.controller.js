@@ -19,9 +19,9 @@ export const getRevenueReport = async (req, res, next) => {
       {
         $group: {
           _id: null,
-          totalRevenue: { $sum: "$total_amount" },
-          totalRoomCharges: { $sum: "$room_charges" },
-          totalServices: { $sum: "$services_total" },
+          totalRevenue: { $sum: "$amount_paid" },
+          totalRoomCharges: { $sum: "$room_charge" },
+          totalServices: { $sum: "$services_charge" },
           totalTax: { $sum: "$tax_amount" }
         }
       }
@@ -44,7 +44,11 @@ export const getOccupancyReport = async (req, res, next) => {
         }
       }
     ]);
-    res.json(report);
+    const totalBookings = report.reduce((acc, item) => acc + item.count, 0);
+    res.json({
+      totalBookings,
+      byStatus: report.map((item) => ({ status: item._id, count: item.count }))
+    });
   } catch (error) {
     next(error);
   }
@@ -62,8 +66,29 @@ export const getGSTReport = async (req, res, next) => {
       };
     }
 
-    const report = await Bill.find(match).select("invoice_number tax_amount total_amount createdAt");
-    res.json(report);
+    const [summary] = await Bill.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: null,
+          totalGST: { $sum: "$tax_amount" }
+        }
+      }
+    ]);
+
+    const items = await Bill.find(match).select("invoice_number tax_amount total_amount createdAt");
+    const totalGST = summary?.totalGST || 0;
+    const totalCGST = totalGST / 2;
+    const totalSGST = totalGST / 2;
+
+    res.json({
+      summary: {
+        totalGST,
+        totalCGST,
+        totalSGST
+      },
+      items
+    });
   } catch (error) {
     next(error);
   }

@@ -8,6 +8,10 @@ import Service from "../models/Service.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import { calculateBill } from "../utils/billCalculator.js";
 import {
+  sendBookingConfirmation,
+  sendCheckoutReminder,
+} from "../utils/sms.js";
+import {
   sendBookingMail,
   sendInvoiceMail,
   sendCancellationMail,
@@ -26,7 +30,65 @@ const calculateNights = (startDate, endDate) => {
   return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 };
 
-const recalcBillForBooking = async ({ booking, bill, room, services }) => {
+const HOUR_MS = 1000 * 60 * 60;
+const DAY_MS = 1000 * 60 * 60 * 24;
+const STANDARD_CHECKIN_HOUR = Number(process.env.STANDARD_CHECKIN_HOUR ?? 12);
+
+const getHourlyRate = (room) => {
+  const perHour = Number(room?.price?.per_hour);
+  if (Number.isFinite(perHour) && perHour > 0) return perHour;
+  const perNight = Number(room?.price?.per_night);
+  if (Number.isFinite(perNight) && perNight > 0) return perNight / 24;
+  return 0;
+};
+
+const getStandardTime = (date, hour) => {
+  const standard = new Date(date);
+  if (Number.isNaN(standard.getTime())) return null;
+  standard.setHours(hour, 0, 0, 0);
+  return standard;
+};
+
+const calculateEarlyCheckInSurcharge = ({ checkInDate, room }) => {
+  if (!checkInDate) return 0;
+  const actual = new Date(checkInDate);
+  const standard = getStandardTime(actual, STANDARD_CHECKIN_HOUR);
+  if (!standard || actual >= standard) return 0;
+  const diffMs = standard.getTime() - actual.getTime();
+  const hours = Math.ceil(diffMs / HOUR_MS);
+  return hours * getHourlyRate(room);
+};
+
+const calculateLateCheckoutSurcharge = ({ expectedCheckout, actualCheckout, room }) => {
+  if (!expectedCheckout || !actualCheckout) return 0;
+  const expected = new Date(expectedCheckout);
+  const actual = new Date(actualCheckout);
+  if (Number.isNaN(expected.getTime()) || Number.isNaN(actual.getTime())) return 0;
+  if (actual <= expected) return 0;
+
+  const diffMs = actual.getTime() - expected.getTime();
+  const perHour = Number(room?.price?.per_hour);
+  if (Number.isFinite(perHour) && perHour > 0) {
+    const hours = Math.ceil(diffMs / HOUR_MS);
+    return hours * perHour;
+  }
+
+  const perNight = Number(room?.price?.per_night);
+  if (Number.isFinite(perNight) && perNight > 0) {
+    const extraNights = Math.ceil(diffMs / DAY_MS);
+    return extraNights * perNight;
+  }
+
+  return 0;
+};
+
+const recalcBillForBooking = async ({
+  booking,
+  bill,
+  room,
+  services,
+  surcharge = 0,
+}) => {
   const endDate =
     booking.check_out_date || booking.expected_checkout || new Date();
   const nights = calculateNights(booking.check_in_date, endDate);
@@ -36,6 +98,7 @@ const recalcBillForBooking = async ({ booking, bill, room, services }) => {
     services,
     discount: bill?.discount?.amount || 0,
     taxPercent: room?.price?.tax_percent,
+    surcharge,
     applyRounding: true,
   });
 
@@ -271,6 +334,19 @@ export const createBooking = async (req, res, next) => {
       } else {
         console.warn("⚠️ Booking email skipped: guest email missing");
       }
+
+      if (guest?.contact && room) {
+        try {
+          await sendBookingConfirmation(`+91${guest.contact}`, {
+            roomNumber: room.room_number,
+            roomCategory: room.room_category || room.name,
+            checkInDate: checkInDate.toLocaleDateString("en-IN"),
+            checkOutDate: expectedCheckoutDate.toLocaleDateString("en-IN"),
+          });
+        } catch (error) {
+          console.error("❌ Booking SMS failed:", error);
+        }
+      }
     }
 
     if (advance > 0) {
@@ -306,8 +382,8 @@ export const createBooking = async (req, res, next) => {
 
 export const checkIn = async (req, res, next) => {
   try {
-    const booking = await Booking.findById(req.params.id);
-    if (!booking || booking.status !== "booked") {
+    const booking = await Booking.findById(req.params.id).populate("bill_id");
+    if (!booking || booking.status !== "booked" || booking.bill_id.status !== "paid") {
       return res.status(400).json({ message: "Invalid booking for check-in" });
     }
 
@@ -335,6 +411,39 @@ export const checkIn = async (req, res, next) => {
     await booking.save();
 
     await Room.findByIdAndUpdate(booking.room_id, { availability: "occupied" });
+
+    const room = await Room.findById(booking.room_id);
+    const bill = await Bill.findById(booking.bill_id);
+
+    if (guest?.contact && room) {
+      try {
+        await sendBookingConfirmation(`+91${guest.contact}`, {
+          roomNumber: room.room_number,
+          roomCategory: room.room_category || room.name,
+          checkInDate: booking.check_in_date?.toLocaleDateString("en-IN"),
+          checkOutDate: booking.expected_checkout?.toLocaleDateString("en-IN"),
+        });
+      } catch (error) {
+        console.error("❌ Check-in SMS failed:", error);
+      }
+    }
+
+    // if (bill && room) {
+    //   const bookingWithServices = await Booking.findById(booking._id)
+    //     .populate("services")
+    //     .select("services check_in_date check_out_date expected_checkout room_id");
+    //   const earlySurcharge = calculateEarlyCheckInSurcharge({
+    //     checkInDate: booking.check_in_date,
+    //     room,
+    //   });
+    //   await recalcBillForBooking({
+    //     booking: bookingWithServices,
+    //     bill,
+    //     room,
+    //     services: bookingWithServices?.services || [],
+    //     surcharge: earlySurcharge,
+    //   });
+    // }
 
     res.json(booking);
   } catch (error) {
@@ -369,11 +478,22 @@ export const checkOut = async (req, res, next) => {
       if (!bill.finalized_at) {
         bill.finalized_at = new Date();
       }
+      // const earlySurcharge = calculateEarlyCheckInSurcharge({
+      //   checkInDate: booking.check_in_date,
+      //   room,
+      // });
+      // const lateSurcharge = calculateLateCheckoutSurcharge({
+      //   expectedCheckout: booking.expected_checkout,
+      //   actualCheckout: booking.check_out_date,
+      //   room,
+      // });
+      // const totalSurcharge = earlySurcharge + lateSurcharge;
       await recalcBillForBooking({
         booking,
         bill,
         room,
         services: booking.services || [],
+        // surcharge: totalSurcharge,
       });
     }
 
@@ -412,6 +532,19 @@ export const checkOut = async (req, res, next) => {
       }
     } else if (!guest?.email) {
       console.warn("⚠️ Invoice email skipped: guest email missing");
+    }
+
+    if (guest?.contact) {
+      try {
+        await sendCheckoutReminder(guest.contact, {
+          roomNumber: room?.room_number,
+          roomCategory: room?.room_category || room?.name,
+          checkInDate: booking.check_in_date?.toLocaleDateString("en-IN"),
+          checkOutDate: booking.check_out_date?.toLocaleDateString("en-IN"),
+        });
+      } catch (error) {
+        console.error("❌ Checkout SMS failed:", error);
+      }
     }
 
     res.json({ booking, bill });

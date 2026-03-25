@@ -1,14 +1,90 @@
 import Bill from "../models/Bill.js";
 import Booking from "../models/Booking.js";
+import Guest from "../models/Guest.js";
 import Room from "../models/Room.js";
 import { calculateBill } from "../utils/billCalculator.js";
 import { generateInvoiceNumber } from "../utils/invoiceNumber.js";
 import PDFDocument from "pdfkit";
+import { discountConfig } from "../config/discounts.js";
 
 const calculateNights = (startDate, endDate) => {
   if (!startDate || !endDate) return 1;
   const diffTime = Math.abs(new Date(endDate) - new Date(startDate));
   return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+};
+
+const getLoyaltyPercent = (bookingCount) => {
+  if (bookingCount >= 15) return 15;
+  if (bookingCount >= 7) return 10;
+  if (bookingCount >= 3) return 5;
+  return 0;
+};
+
+const isDateInRange = (date, range) => {
+  if (!range?.start || !range?.end) return false;
+  const start = new Date(range.start);
+  const end = new Date(range.end);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
+  return date >= start && date <= end;
+};
+
+const getSeasonalPercent = (date) => {
+  const ranges = discountConfig?.seasonal?.ranges || [];
+  const activeRange = ranges.find((range) => isDateInRange(date, range));
+  return activeRange?.percent || 0;
+};
+
+const getAutomatedDiscount = async ({ type, booking, room, services }) => {
+  if (!type || type === "manual") {
+    return { isEligible: true, discountAmount: 0, reason: "manual" };
+  }
+
+  const subtotal =
+    (Number(room?.price?.per_night) || 0) *
+      calculateNights(booking.check_in_date, booking.check_out_date || booking.expected_checkout || new Date()) +
+    (services || []).reduce((acc, service) => {
+      const qty = Number(service.quantity) || 1;
+      const unitPrice = Number(service.unit_price ?? service.price) || 0;
+      const totalPrice = Number(service.total_price);
+      const lineTotal = Number.isFinite(totalPrice) ? totalPrice : unitPrice * qty;
+      return acc + lineTotal;
+    }, 0);
+
+  if (subtotal <= 0) {
+    return { isEligible: false, discountAmount: 0, reason: "No billable amount" };
+  }
+
+  if (type === "loyalty") {
+    const guest = await Guest.findById(booking.guest_id).select("booking_history");
+    const bookingCount = guest?.booking_history?.length || 0;
+    const percent = getLoyaltyPercent(bookingCount);
+    if (percent <= 0) {
+      return { isEligible: false, discountAmount: 0, reason: "Not eligible for loyalty discount" };
+    }
+    return {
+      isEligible: true,
+      discountAmount: Math.round((subtotal * percent) / 100),
+      reason: `Loyalty ${percent}%`,
+    };
+  }
+
+  if (type === "seasonal") {
+    const percent = getSeasonalPercent(new Date());
+    if (percent <= 0) {
+      return { isEligible: false, discountAmount: 0, reason: "No active seasonal discount" };
+    }
+    return {
+      isEligible: true,
+      discountAmount: Math.round((subtotal * percent) / 100),
+      reason: `Seasonal ${percent}%`,
+    };
+  }
+
+  if (type === "corporate") {
+    return { isEligible: false, discountAmount: 0, reason: "Corporate discount not configured" };
+  }
+
+  return { isEligible: false, discountAmount: 0, reason: "Unknown discount type" };
 };
 
 export const getAllBills = async (req, res, next) => {
@@ -164,12 +240,26 @@ export const applyDiscount = async (req, res, next) => {
     const amount = Math.max(0, Number(rawAmount) || 0);
     const type = typeof discount === "object" && discount?.type ? discount.type : "manual";
 
-    bill.discount = { type, amount };
-
     const booking = await Booking.findById(bill.booking_id).populate("services");
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     const room = await Room.findById(booking.room_id);
     if (!room) return res.status(404).json({ message: "Room not found" });
+
+    let finalAmount = amount;
+    if (type !== "manual") {
+      const { isEligible, discountAmount, reason } = await getAutomatedDiscount({
+        type,
+        booking,
+        room,
+        services: booking.services || [],
+      });
+      if (!isEligible) {
+        return res.status(400).json({ message: reason || "Discount not eligible" });
+      }
+      finalAmount = discountAmount;
+    }
+
+    bill.discount = { type, amount: finalAmount };
 
     const endDate = booking.check_out_date || booking.expected_checkout || new Date();
     const nights = calculateNights(booking.check_in_date, endDate);
@@ -177,7 +267,7 @@ export const applyDiscount = async (req, res, next) => {
       roomPricePerNight: Number(room?.price?.per_night) || 0,
       nights,
       services: booking.services || [],
-      discount: amount,
+      discount: finalAmount,
       taxPercent: Number(room?.price?.tax_percent) || 0,
       applyRounding: true,
     });

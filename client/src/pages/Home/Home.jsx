@@ -5,6 +5,7 @@ import FacilitiesMarquee from '../../components/LandingPage/FacilitiesMarquee';
 import TestimonialsSection from '../../components/LandingPage/TestimonialsSection';
 import Footer from '../../components/LandingPage/Footer';
 import Navigation from '../../components/LandingPage/Navigation';
+import Bot from './components/Bot';
 
 const Home = () => {
   // Scroll to top on mount
@@ -30,6 +31,7 @@ const Home = () => {
       
       {/* Footer */}
       <Footer />
+      <Bot />
     </div>
   );
 };

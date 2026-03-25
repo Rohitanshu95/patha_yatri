@@ -1,6 +1,7 @@
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 import Room from "../models/Room.js";
+import Booking from "../models/Booking.js";
 
 export const createRoom = async (req, res, next) => {
   try {
@@ -170,11 +171,38 @@ export const changeRoomStatus = async (req, res, next) => {
 export const getAvailableRooms = async (req, res, next) => {
   try {
     const { checkIn, checkOut, occupants } = req.query;
-    // Simple availability check based on pure room status for now.
-    // Advanced check would query active bookings between dates.
     const query = { availability: "available" };
     if (occupants) query.max_occupants = { $gte: Number(occupants) };
-    
+    const checkInDate = checkIn ? new Date(checkIn) : null;
+    const checkOutDate = checkOut ? new Date(checkOut) : null;
+
+    if (
+      checkInDate &&
+      checkOutDate &&
+      !Number.isNaN(checkInDate.getTime()) &&
+      !Number.isNaN(checkOutDate.getTime()) &&
+      checkOutDate > checkInDate
+    ) {
+      const overlappingRoomIds = await Booking.distinct("room_id", {
+        status: { $in: ["booked", "checked-in"] },
+        $expr: {
+          $and: [
+            { $lt: ["$check_in_date", checkOutDate] },
+            {
+              $gt: [
+                { $ifNull: ["$check_out_date", "$expected_checkout"] },
+                checkInDate,
+              ],
+            },
+          ],
+        },
+      });
+
+      if (overlappingRoomIds.length > 0) {
+        query._id = { $nin: overlappingRoomIds };
+      }
+    }
+
     const rooms = await Room.find(query).lean();
     res.json(rooms);
   } catch (error) {

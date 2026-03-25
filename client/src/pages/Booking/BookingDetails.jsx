@@ -26,6 +26,7 @@ const BookingDetails = () => {
     isLoading: isBillingLoading,
     fetchBillByBooking,
     fetchPayments,
+    applyDiscount,
     processPayment,
     downloadInvoice,
   } = useBillStore();
@@ -42,6 +43,9 @@ const BookingDetails = () => {
   const [proofFile, setProofFile] = useState(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
   const [applyRounding, setApplyRounding] = useState(false);
+  const [discountInput, setDiscountInput] = useState(0);
+  const [discountType, setDiscountType] = useState("manual");
+  const [isApplyingDiscount, setIsApplyingDiscount] = useState(false);
 
   const refreshData = async () => {
     if (!id) return;
@@ -58,6 +62,7 @@ const BookingDetails = () => {
   useEffect(() => {
     refreshData();
   }, [id]);
+
 
   const statusConfig = {
     "checked-in": {
@@ -108,15 +113,27 @@ const BookingDetails = () => {
   const formatCurrency = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
 
   const billData = bill || booking?.bill_id;
+
+  useEffect(() => {
+    const billDiscount = Number(billData?.discount?.amount) || 0;
+    setDiscountInput(billDiscount);
+    setDiscountType(billData?.discount?.type || "manual");
+  }, [billData?._id]);
   const summary = useMemo(
-    () => calculateBillingSummary({ booking, bill: billData, applyRounding }),
-    [booking, billData, applyRounding],
+    () => calculateBillingSummary({
+      booking,
+      bill: billData,
+      discountOverride: discountType === "manual" ? discountInput : billData?.discount?.amount,
+      applyRounding,
+    }),
+    [booking, billData, discountInput, discountType, applyRounding],
   );
 
   const {
     nights,
     roomCharge,
     servicesTotal,
+    manualDiscount,
     gstTotal,
     totalBeforeRound,
     roundOff,
@@ -130,6 +147,7 @@ const BookingDetails = () => {
   const totalAmount = roundedTotal;
   const remainingAmount = balanceDue;
   const isFullyPaid = totalAmount > 0 && remainingAmount <= 0;
+  const isDiscountLocked = isFullyPaid || billData?.status === "paid";
 
   const hasProof = Boolean(
     booking?.guest_id?.documents?.id_proof &&
@@ -198,6 +216,21 @@ const BookingDetails = () => {
     if (!booking || !serviceId || !canEditServices) return;
     await removeService(booking._id, serviceId);
     await refreshData();
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!billData?._id || isDiscountLocked) return;
+    setIsApplyingDiscount(true);
+    const res = await applyDiscount(billData._id, {
+      type: discountType,
+      amount: manualDiscount,
+    });
+    if (res) {
+      setBill(res);
+      setDiscountType(res?.discount?.type || discountType);
+      setDiscountInput(Number(res?.discount?.amount) || 0);
+    }
+    setIsApplyingDiscount(false);
   };
 
   const handlePayment = async (e) => {
@@ -748,6 +781,58 @@ const BookingDetails = () => {
                   </div>
                 </div>
               </div>
+            </section>
+
+            <section className="bg-surface border border-outline/15 p-6">
+              <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface mb-6">
+                Additional Discount
+              </h3>
+              {!billData?._id ? (
+                <p className="text-sm text-on-surface-variant">
+                  Generate a bill before applying discounts.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[9px] uppercase font-bold text-on-surface-variant tracking-[0.2em] block mb-2">
+                      Discount Type
+                    </label>
+                    <select
+                      value={discountType}
+                      onChange={(e) => setDiscountType(e.target.value)}
+                      disabled={isDiscountLocked}
+                      className="w-full bg-surface-container border border-outline/20 px-3 py-2 text-xs uppercase tracking-widest disabled:opacity-60"
+                    >
+                      <option value="seasonal">Seasonal</option>
+                      <option value="loyalty">Loyalty</option>
+                      <option value="corporate">Corporate</option>
+                      <option value="manual">Manual</option>
+                    </select>
+                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    value={discountInput}
+                    onChange={(e) => setDiscountInput(e.target.value)}
+                    disabled={isDiscountLocked || discountType !== "manual"}
+                    className="w-full bg-surface-container border-b border-outline/30 focus:border-primary focus:ring-0 text-lg font-serif text-on-surface py-3 px-4 outline-none disabled:opacity-60"
+                    placeholder="Enter discount amount"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyDiscount}
+                    disabled={isApplyingDiscount || isDiscountLocked}
+                    className="w-full py-3 bg-on-surface text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-primary transition-all disabled:opacity-60"
+                  >
+                    {isApplyingDiscount ? "Applying..." : "Apply Discount"}
+                  </button>
+                </div>
+              )}
+              {isDiscountLocked && billData?._id && (
+                <p className="mt-3 text-xs text-on-surface-variant">
+                  Discount locked after payment.
+                </p>
+              )}
             </section>
 
             <section className="bg-surface border border-outline/15 p-6">

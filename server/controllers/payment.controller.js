@@ -84,11 +84,13 @@ export const listPayments = async (req, res, next) => {
 export const refundPayment = async (req, res, next) => {
   try {
     const payment = await Payment.findById(req.params.id);
-    if (!payment || payment.status !== "completed") {
+    if (!payment || payment.status !== "success") {
       return res.status(400).json({ message: "Invalid payment to refund" });
     }
 
     payment.status = "refunded";
+    payment.refund_amount = payment.amount;
+    payment.refund_date = new Date();
     await payment.save();
 
     const bill = await Bill.findById(payment.bill_id);

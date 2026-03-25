@@ -9,6 +9,7 @@ import {
   changeRoomStatus, 
   getAvailableRooms 
 } from "../controllers/room.controller.js";
+import { auditWrite } from "../middleware/auditLogger.js";
 
 const router = express.Router();
 
@@ -23,12 +24,13 @@ router.get(
 );
 router.get("/", authenticate, authorize(...RECEPTIONIST_PLUS), listRooms);
 router.get("/:id", authenticate, authorize(...RECEPTIONIST_PLUS), getRoom);
-router.post("/", authenticate, authorize(...ADMIN_MANAGER), upload.array("images", 5), createRoom);
-router.put("/:id", authenticate, authorize(...ADMIN_MANAGER), upload.array("images", 5), updateRoom);
+router.post("/", authenticate, authorize(...ADMIN_MANAGER), upload.array("images", 5), auditWrite("Room"), createRoom);
+router.put("/:id", authenticate, authorize(...ADMIN_MANAGER), upload.array("images", 5), auditWrite("Room"), updateRoom);
 router.patch(
   "/:id/status",
   authenticate,
   authorize(...RECEPTIONIST_PLUS),
+  auditWrite("Room"),
   changeRoomStatus
 );
 
