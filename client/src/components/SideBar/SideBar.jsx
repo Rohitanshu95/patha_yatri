@@ -11,6 +11,7 @@ const SideBar = () => {
   const links = {
     admin: [
       { name: "Dashboard", path: "/app/admin", icon: "dashboard" },
+      { name: "Hotels", path: "/app/admin/hotels", icon: "apartment" },
       { name: "Users", path: "/app/admin/users", icon: "group" },
       { name: "Rooms", path: "/app/admin/rooms", icon: "bed" },
       { name: "Reports", path: "/app/admin/reports", icon: "assessment" },

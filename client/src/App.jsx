@@ -15,6 +15,7 @@ import Reports from "./pages/Reports/Reports";
 import AuditLogs from "./pages/Audit/AuditLogs";
 import SystemSettings from "./pages/Settings/SystemSettings";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminHotels from "./pages/Admin/AdminHotels";
 import BookingDetails from "./pages/Booking/BookingDetails";
 import { ToastContainer } from "react-toastify";
 
@@ -38,6 +39,7 @@ const App = () => {
               <Route path="reports" element={<Reports />} />
               <Route path="audit" element={<AuditLogs />} />
               <Route path="settings" element={<SystemSettings />} />
+              <Route path="hotels" element={<AdminHotels />} />
             </Route>
             {/* manager */}
             <Route

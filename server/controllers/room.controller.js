@@ -2,6 +2,7 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 import Room from "../models/Room.js";
 import Booking from "../models/Booking.js";
+import User from "../models/User.js";
 
 export const createRoom = async (req, res, next) => {
   try {
@@ -15,6 +16,13 @@ export const createRoom = async (req, res, next) => {
       }
     }
 
+    if (req.user && !data.hotel) {
+        const currentUser = await User.findById(req.user.id);
+        if (currentUser?.hotel) {
+            data.hotel = currentUser.hotel;
+        }
+    }
+
     const roomData = {
       ...data,
       price: {
@@ -24,6 +32,7 @@ export const createRoom = async (req, res, next) => {
       },
       amenities: data.amenities ? data.amenities.split(',').map(a => a.trim()) : [],
       images: imageUrls,
+      hotel: data.hotel,
     };
 
     const room = new Room(roomData);
@@ -48,6 +57,12 @@ export const listRooms = async (req, res, next) => {
     } = req.query;
 
     const query = {};
+    if (req.user) {
+        const currentUser = await User.findById(req.user.id);
+        if (currentUser?.hotel) {
+            query.hotel = currentUser.hotel;
+        }
+    }
 
     // Search filter
     if (search) {
@@ -172,6 +187,12 @@ export const getAvailableRooms = async (req, res, next) => {
   try {
     const { checkIn, checkOut, occupants } = req.query;
     const query = { availability: "available" };
+    if (req.user) {
+        const currentUser = await User.findById(req.user.id);
+        if (currentUser?.hotel) {
+            query.hotel = currentUser.hotel;
+        }
+    }
     if (occupants) query.max_occupants = { $gte: Number(occupants) };
     const checkInDate = checkIn ? new Date(checkIn) : null;
     const checkOutDate = checkOut ? new Date(checkOut) : null;

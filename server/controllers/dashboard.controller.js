@@ -11,9 +11,21 @@ export const getReceptionistDashboard = async (req, res, next) => {
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
+    const currentUser = await User.findById(req.user.id);
+    let roomFilter = {};
+    let bookingRoomFilter = {};
+    
+    if (currentUser?.hotel) {
+      roomFilter = { hotel: currentUser.hotel };
+      const rooms = await Room.find(roomFilter).select('_id');
+      const roomIds = rooms.map(r => r._id);
+      bookingRoomFilter = { room_id: { $in: roomIds } };
+    }
+
     // 1. Pending Arrivals (status: "booked")
     const pendingArrivals = await Booking.find({
       status: "booked",
+      ...bookingRoomFilter
     })
       .populate("guest_id")
       .populate("room_id")
@@ -22,6 +34,7 @@ export const getReceptionistDashboard = async (req, res, next) => {
     // 2. In-House Guests (status: "checked-in")
     const inHouse = await Booking.find({
       status: "checked-in",
+      ...bookingRoomFilter
     })
       .populate("guest_id")
       .populate("room_id")
@@ -31,6 +44,7 @@ export const getReceptionistDashboard = async (req, res, next) => {
     const todaysDepartures = await Booking.find({
       status: "checked-in",
       expected_checkout: { $lte: todayEnd },
+      ...bookingRoomFilter
     })
       .populate("guest_id")
       .populate("room_id")
@@ -38,6 +52,7 @@ export const getReceptionistDashboard = async (req, res, next) => {
 
     // 4. Room Status summary
     const roomStats = await Room.aggregate([
+      { $match: roomFilter },
       {
         $group: {
           _id: "$availability",

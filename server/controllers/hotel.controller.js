@@ -2,6 +2,7 @@ import Hotel from "../models/Hotels.model.js";
 import Room from "../models/Room.js";
 import Booking from "../models/Booking.js";
 import mongoose from "mongoose";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 // ─── GET ALL HOTELS ───────────────────────────────────────────────────────────
 // GET /hotels
@@ -57,34 +58,87 @@ export const createHotel = async (req, res, next) => {
   try {
     const {
       name,
-      location,
       manager,
-      receptionists,
-      proximity,
-      phone,
       website,
-      amenities,
-      photos,
     } = req.body;
 
-    if (!name || !location?.address || !manager) {
+    let locationData = req.body.location;
+    let proximityData = req.body.proximity;
+    let amenitiesData = req.body.amenities;
+    let phoneData = req.body.phone;
+    let receptionistsData = req.body.receptionists;
+
+    if (typeof locationData === "string") {
+      try { locationData = JSON.parse(locationData); } catch (e) { locationData = {}; }
+    }
+    if (typeof proximityData === "string") {
+      try { proximityData = JSON.parse(proximityData); } catch (e) { proximityData = {}; }
+    }
+    if (typeof amenitiesData === "string") {
+      try { amenitiesData = JSON.parse(amenitiesData); } catch (e) { amenitiesData = []; }
+    }
+    if (typeof phoneData === "string") {
+      try { phoneData = JSON.parse(phoneData); } catch (e) { phoneData = []; }
+    }
+    if (typeof receptionistsData === "string") {
+      try { receptionistsData = JSON.parse(receptionistsData); } catch (e) { receptionistsData = []; }
+    }
+
+    if (!name || !locationData?.address || !manager) {
       return res.status(400).json({
         success: false,
         message: "name, location.address, and manager are required.",
       });
     }
 
+    let photoUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const url = await uploadToCloudinary(file.buffer, "hotels");
+        photoUrls.push(url);
+      }
+    }
+    let existingPhotos = req.body.photos || [];
+    if (typeof existingPhotos === "string") existingPhotos = [existingPhotos];
+    const allPhotos = [...existingPhotos, ...photoUrls];
+
     const hotel = await Hotel.create({
       name,
-      location,
+      location: locationData,
       manager,
-      receptionists: receptionists ?? [],
-      proximity,
-      phone: phone ?? [],
+      receptionists: receptionistsData ?? [],
+      proximity: proximityData,
+      phone: phoneData ?? [],
       website,
-      amenities: amenities ?? [],
-      photos: photos ?? [],
+      amenities: amenitiesData ?? [],
+      photos: allPhotos,
     });
+
+    const roomsAvailable = parseInt(req.body.roomsAvailable) || 0;
+    if (roomsAvailable > 0) {
+      const roomDocs = [];
+      for (let i = 1; i <= roomsAvailable; i++) {
+        roomDocs.push({
+          room_number: `${hotel.name.slice(0,3).toUpperCase().replace(/[^A-Z]/g, 'H')}-${hotel._id.toString().slice(-4)}-${100 + i}`,
+          name: `Room ${100 + i}`,
+          room_category: "standard",
+          availability: "available",
+          price: {
+            per_night: 0,
+            tax_percent: 0,
+          },
+          max_occupants: 2,
+          hotel: hotel._id,
+        });
+      }
+      try {
+        const createdRooms = await Room.insertMany(roomDocs);
+        hotel.rooms = createdRooms.map(r => r._id);
+        await hotel.save();
+      } catch (err) {
+        console.error("Failed to insert dummy rooms:", err);
+      }
+    }
 
     return res.status(201).json({
       success: true,
@@ -148,6 +202,25 @@ export const updateHotelById = async (req, res, next) => {
 
     // Strip immutable / relationship fields that must not be changed here
     const { rooms, booking, _id, __v, ...updateData } = req.body;
+
+    ["location", "proximity", "amenities", "phone", "receptionists"].forEach((key) => {
+      if (typeof updateData[key] === "string") {
+        try { updateData[key] = JSON.parse(updateData[key]); } catch (e) {}
+      }
+    });
+
+    let photoUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        const url = await uploadToCloudinary(file.buffer, "hotels");
+        photoUrls.push(url);
+      }
+    }
+    if (photoUrls.length > 0 || updateData.photos) {
+      let existingPhotos = updateData.photos || [];
+      if (typeof existingPhotos === "string") existingPhotos = [existingPhotos];
+      updateData.photos = [...existingPhotos, ...photoUrls];
+    }
 
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ success: false, message: "No update fields provided." });
