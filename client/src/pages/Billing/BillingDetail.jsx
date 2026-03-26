@@ -3,6 +3,20 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useBillStore } from "../../store/billStore";
 import { useBookingStore } from "../../store/bookingStore";
 import { calculateBillingSummary } from "../../utils/billingCalc";
+import { showError } from "../../utils/toast";
+
+const loadRazorpayScript = () => {
+  if (window.Razorpay) return Promise.resolve(true);
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => reject(new Error("Failed to load Razorpay Checkout"));
+    document.body.appendChild(script);
+  });
+};
 
 const BillingDetail = () => {
   const { bookingId } = useParams();
@@ -14,6 +28,8 @@ const BillingDetail = () => {
     downloadInvoice,
     applyDiscount,
     processPayment,
+    createRazorpayOrder,
+    verifyRazorpayPayment,
     isLoading,
   } = useBillStore();
   const { fetchBookingById } = useBookingStore();
@@ -252,6 +268,56 @@ const BillingDetail = () => {
       return;
     }
     setIsSubmittingPayment(true);
+
+    if (paymentMethod === "Online") {
+      try {
+        await loadRazorpayScript();
+      } catch (error) {
+        showError(error, "Unable to load payment gateway. Please try again.");
+        setIsSubmittingPayment(false);
+        return;
+      }
+
+      const orderResponse = await createRazorpayOrder(bill._id, amount);
+      if (!orderResponse?.order || !orderResponse?.key_id) {
+        setIsSubmittingPayment(false);
+        return;
+      }
+
+      const options = {
+        key: orderResponse.key_id,
+        amount: orderResponse.order.amount,
+        currency: "INR",
+        name: "Patha Yatri Hotel",
+        description: "Bill Payment",
+        order_id: orderResponse.order.id,
+        handler: async (response) => {
+          const verifyRes = await verifyRazorpayPayment({
+            ...response,
+            bill_id: bill._id,
+          });
+
+          if (verifyRes?.bill) {
+            setBill(verifyRes.bill);
+            setPaymentAmount("");
+            await refreshData();
+          }
+        },
+        prefill: {
+          contact: booking?.guest_id?.contact || "",
+          email: booking?.guest_id?.email || "",
+        },
+        theme: {
+          color: "#C5A059",
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      setIsSubmittingPayment(false);
+      return;
+    }
+
     const res = await processPayment(bill._id, {
       method: paymentMethod,
       amount,
@@ -566,7 +632,11 @@ const BillingDetail = () => {
                       disabled={isSubmittingPayment || isLoading}
                       className="w-full py-4 bg-[#C5A059] text-[10px] font-bold uppercase tracking-[0.2em] text-white hover:brightness-105 transition-all flex items-center justify-center gap-2"
                     >
-                      {isSubmittingPayment ? "Processing..." : "Submit Payment"}
+                      {isSubmittingPayment
+                        ? "Processing..."
+                        : paymentMethod === "Online"
+                          ? "Pay via Razorpay"
+                          : "Submit Payment"}
                       {!isSubmittingPayment && (
                         <span className="material-symbols-outlined text-base">arrow_forward</span>
                       )}

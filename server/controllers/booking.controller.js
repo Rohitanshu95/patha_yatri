@@ -383,7 +383,7 @@ export const createBooking = async (req, res, next) => {
 export const checkIn = async (req, res, next) => {
   try {
     const booking = await Booking.findById(req.params.id).populate("bill_id");
-    if (!booking || booking.status !== "booked" || booking.bill_id.status !== "paid") {
+    if (!booking || booking.status !== "booked" || booking.bill_id.status === "paid") {
       return res.status(400).json({ message: "Invalid booking for check-in" });
     }
 

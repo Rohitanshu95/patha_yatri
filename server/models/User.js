@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     },
     isActive: { type: Boolean, required: true, default: true },
     lastLogin: { type: Date },
+    hotel: { type: mongoose.Schema.Types.ObjectId, ref: "Hotel" },
   },
   { timestamps: true },
 );

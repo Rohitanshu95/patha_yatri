@@ -24,6 +24,7 @@ const roomSchema = new mongoose.Schema(
     max_occupants: { type: Number, required: true },
     images: [{ type: String }],
     bookings: [{ type: mongoose.Schema.Types.ObjectId, ref: "Booking" }],
+    hotel: { type: mongoose.Schema.Types.ObjectId, ref: "Hotel", required: true },
   },
   { timestamps: true },
 );

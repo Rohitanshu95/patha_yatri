@@ -95,6 +95,39 @@ export const useBillStore = create((set) => ({
     }
   },
 
+  createRazorpayOrder: async (billId, amount) => {
+    try {
+      set({ isLoading: true, error: null });
+      const res = await axiosInstance.post("/payments/online/create-order", {
+        bill_id: billId,
+        amount,
+      });
+      set({ isLoading: false });
+      return res.data;
+    } catch (error) {
+      showError(error, "Failed to create payment order");
+      set({ error: error.message, isLoading: false });
+      return null;
+    }
+  },
+
+  verifyRazorpayPayment: async (paymentData) => {
+    try {
+      set({ isLoading: true, error: null });
+      const res = await axiosInstance.post("/payments/online/verify", paymentData);
+      set((state) => ({
+        bills: state.bills.map((b) => (b._id === res.data?.bill?._id ? res.data.bill : b)),
+        isLoading: false,
+      }));
+      showSuccess(res.data?.message, "Payment verified successfully");
+      return res.data;
+    } catch (error) {
+      showError(error, "Payment verification failed");
+      set({ error: error.message, isLoading: false });
+      return null;
+    }
+  },
+
   applyDiscount: async (billId, discountData) => {
     try {
       set({ isLoading: true });
