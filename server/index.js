@@ -35,6 +35,26 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(morgan("dev"));
 
+let isConnected = false;
+ 
+const connectInServer = async () => {
+  try {
+    await connectDB();
+    console.log("Database connected successfully");
+    isConnected = true;
+  } catch (error) {
+    console.error("Database connection failed:", error);
+  }
+}
+ 
+app.use(async (req, res, next) => {
+  if (!isConnected) {
+    await connectInServer();
+    isConnected = true;
+  }
+  next();
+});
+
 // Main API Router Mappings
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
