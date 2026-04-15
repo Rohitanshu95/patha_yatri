@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Search, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useLanguage } from '../../context/LanguageContext';
 
 const odiaTexts = [
   "ସ୍ୱାଗତ ଓଡ଼ିଶା",
@@ -12,6 +13,7 @@ const odiaTexts = [
 
 const Hero = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [location, setLocation] = useState('');
   const [dates, setDates] = useState('');
   const [guests, setGuests] = useState('');
@@ -38,7 +40,7 @@ const Hero = () => {
   };
 
   return (
-    <div className="relative pt-24 pb-16 lg:pt-32 lg:pb-32 bg-[#faf9f6] w-full overflow-hidden">
+    <div className="relative pt-64 pb-16 lg:pt-80 lg:pb-32 bg-[#faf9f6] w-full overflow-hidden">
       
       {/* Background Decorative Element */}
       <div className="absolute top-0 right-0 w-1/3 h-[600px] bg-[#b49a78]/20 blur-[150px] rounded-full pointer-events-none" />
@@ -71,28 +73,28 @@ const Hero = () => {
             <div className="w-8 h-8 rounded-full bg-[#b49a78]/20 flex items-center justify-center text-[#b49a78]">
               ✧
             </div>
-            <span className="text-neutral-500">Discover your dream destination</span>
+            <span className="text-neutral-500">{t.hero.badge}</span>
           </div>
 
-          <h1 className="text-6xl md:text-8xl lg:text-[7.5rem] font-serif leading-[0.95] text-[#111111] tracking-tighter">
-            Find the <span className="italic text-[#b49a78]">perfect</span> <br />
-            place to stay.
+          <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-serif leading-[0.9] text-[#111111] tracking-tighter">
+            {t.hero.title} <span className="italic text-[#b49a78]">{t.hero.titleItalic}</span> <br />
+            {t.hero.titleEnd}
           </h1>
 
           <p className="text-neutral-500 text-lg md:text-xl leading-relaxed max-w-lg font-sans mt-4">
-            We provide a variety of the best hotels with the most complete facilities and stunning views to make your vacation perfect.
+            {t.hero.desc}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-6 mt-8 w-full sm:w-auto">
             <button onClick={handleExplore} className="w-full sm:w-auto bg-[#111111] hover:bg-[#b49a78] text-white px-10 py-5 rounded-full font-sans font-medium transition-colors shadow-2xl hover:shadow-[#b49a78]/30">
-              Explore Now
+              {t.hero.explore}
             </button>
             <div className="flex items-center gap-4 cursor-pointer group w-full sm:w-auto mt-4 sm:mt-0 justify-center">
               <div className="w-16 h-16 rounded-full border border-neutral-200 flex items-center justify-center group-hover:border-[#b49a78] transition-colors relative overflow-hidden">
                 <div className="w-0 h-0 border-t-6 border-t-transparent border-l-[8px] border-l-[#111111] border-b-6 border-b-transparent group-hover:border-l-[#b49a78] transition-colors ml-1 z-10" />
                 <div className="absolute inset-0 bg-[#b49a78]/0 group-hover:bg-[#b49a78]/5 transition-colors" />
               </div>
-              <span className="font-semibold tracking-wide text-sm font-sans text-[#1E293B] group-hover:text-[#b49a78] transition-colors uppercase">Watch Video</span>
+              <span className="font-semibold tracking-wide text-sm font-sans text-[#1E293B] group-hover:text-[#b49a78] transition-colors uppercase">{t.hero.watch}</span>
             </div>
           </div>
         </motion.div>
@@ -102,11 +104,15 @@ const Hero = () => {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
-          className="relative h-[500px] w-full hidden md:block"
+          className="relative h-[650px] w-full hidden md:block"
         >
           {/* Main Large Image */}
-          <div className="absolute top-0 right-10 w-[60%] h-[70%] rounded-3xl overflow-hidden shadow-2xl">
-            <img src="/assets/Odisha-Tourism.jpg" alt="Luxury Indian Resort" className="w-full h-full object-cover" />
+          <div className="absolute top-0 right-10 w-[60%] h-[70%] rounded-3xl overflow-hidden shadow-2xl bg-white">
+            <img 
+              src="https://yt3.googleusercontent.com/-8H2p1EiBd0RpxWbHmz9qby_vPvsYNpm1z4kjAtC_pCyBuZZsRJSK-VSzXHwBWdTEswJL2kVpg=s900-c-k-c0x00ffffff-no-rj" 
+              alt="Odisha Tourism" 
+              className="w-full h-full object-contain p-8" 
+            />
           </div>
           
           {/* Bottom Left Image */}
@@ -122,8 +128,8 @@ const Hero = () => {
               <img src="https://i.pravatar.cc/100?img=3" alt="user" className="w-10 h-10 rounded-full border-2 border-white" />
             </div>
             <div>
-              <p className="text-xs font-bold text-[#1E293B]">10k+ Customers</p>
-              <p className="text-[10px] text-[#64748B]">Satisfied around world</p>
+              <p className="text-xs font-bold text-[#1E293B]">{t.hero.customers}</p>
+              <p className="text-[10px] text-[#64748B]">{t.hero.satisfied}</p>
             </div>
           </div>
         </motion.div>
@@ -140,41 +146,41 @@ const Hero = () => {
         <div className="bg-white rounded-[2rem] shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-neutral-100 p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 justify-between">
           
           <div className="flex flex-col gap-1 flex-1 border-r border-neutral-100 pr-6 w-full hidden md:block">
-            <label className="text-xs font-semibold text-[#64748B] flex items-center gap-2"><MapPin size={14} className="text-[#E8A317]"/> Location</label>
+            <label className="text-xs font-semibold text-[#64748B] flex items-center gap-2"><MapPin size={14} className="text-[#E8A317]"/> {t.hero.labels.location}</label>
             <input 
               type="text" 
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="Where are you going?" 
+              placeholder={t.hero.placeholders.location}
               className="outline-none border-none font-semibold text-[#1E293B] placeholder-[#94A3B8] text-sm w-full bg-transparent" 
             />
           </div>
           
           <div className="flex flex-col gap-1 flex-1 border-r border-neutral-100 pr-6 w-full hidden md:block">
-            <label className="text-xs font-semibold text-[#64748B] flex items-center gap-2"><Calendar size={14} className="text-[#E8A317]"/> Dates</label>
+            <label className="text-xs font-semibold text-[#64748B] flex items-center gap-2"><Calendar size={14} className="text-[#E8A317]"/> {t.hero.labels.dates}</label>
             <input 
               type="text" 
               value={dates}
               onChange={(e) => setDates(e.target.value)}
-              placeholder="Check in - Check out" 
+              placeholder={t.hero.placeholders.dates}
               className="outline-none border-none font-semibold text-[#1E293B] placeholder-[#94A3B8] text-sm w-full bg-transparent" 
             />
           </div>
 
           <div className="flex flex-col gap-1 flex-1 pr-6 w-full">
-            <label className="text-xs font-semibold text-[#64748B] flex items-center gap-2"><Users size={14} className="text-[#E8A317]"/> Guests</label>
+            <label className="text-xs font-semibold text-[#64748B] flex items-center gap-2"><Users size={14} className="text-[#E8A317]"/> {t.hero.labels.guests}</label>
             <input 
               type="text" 
               value={guests}
               onChange={(e) => setGuests(e.target.value)}
-              placeholder="2 Adults, 1 Child" 
+              placeholder={t.hero.placeholders.guests}
               className="outline-none border-none font-semibold text-[#1E293B] placeholder-[#94A3B8] text-sm w-full bg-transparent" 
             />
           </div>
 
           <button onClick={handleSearch} className="w-full md:w-auto bg-[#111111] hover:bg-[#b49a78] text-white p-4 md:px-10 md:py-5 rounded-full font-semibold font-sans tracking-wide flex items-center justify-center gap-3 transition-colors shadow-2xl hover:shadow-[#b49a78]/40">
             <Search size={18} />
-            Search
+            {t.hero.search}
           </button>
         </div>
       </motion.div>

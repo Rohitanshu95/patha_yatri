@@ -1,7 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Footer = () => {
+  const { t } = useLanguage();
+
   return (
     <footer className="bg-white text-[#111111] pt-28 pb-12 border-t border-neutral-100 overflow-hidden relative">
       <div className="absolute top-0 left-0 w-1/4 h-[400px] bg-[#b49a78]/5 blur-[150px] rounded-full pointer-events-none" />
@@ -9,33 +12,23 @@ const Footer = () => {
       <div className="w-full max-w-[1800px] mx-auto px-6 md:px-12 lg:px-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative z-10">
         
         {/* Brand */}
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-4 cursor-pointer">
-              <img 
-                src="/assets/logo.png" 
-                alt="Luxe Logo" 
-                className="h-14 w-auto object-contain mix-blend-multiply" 
-                onError={(e) => { e.target.style.display = 'none'; e.target.nextElementSibling.style.display = 'block'; }}
-              />
-              <span className="hidden text-2xl font-serif font-bold text-[#111111] uppercase tracking-widest">Luxe</span>
-            </div>
-            
-            <div className="flex items-center gap-5 mt-2">
-              <img 
-                src="/assets/state.png" 
-                alt="Odisha Tourism" 
-                className="h-12 w-auto object-contain" 
-              />
+        <div className="flex flex-col items-center md:items-start gap-6">
+          <div className="flex flex-col items-center md:items-start gap-8">
+            <div className="flex items-center gap-8 cursor-pointer">
               <img 
                 src="/assets/otdc.png" 
                 alt="OTDC" 
-                className="h-12 w-auto object-contain" 
+                className="h-24 w-auto object-contain" 
+              />
+              <img 
+                src="/assets/state.png" 
+                alt="Odisha Tourism" 
+                className="h-20 w-auto object-contain" 
               />
             </div>
           </div>
-          <p className="text-[#737373] text-sm leading-relaxed max-w-xs font-sans">
-            We always make our customers happy by providing as many choices as possible.
+          <p className="text-[#737373] text-sm leading-relaxed max-w-xs font-sans text-center md:text-left">
+            {t.footer.desc}
           </p>
           <div className="flex gap-4 text-[#a3a3a3]">
             <a href="#" className="hover:text-[#b49a78] transition-colors bg-neutral-50 p-2.5 rounded-full border border-neutral-100">
@@ -52,7 +45,7 @@ const Footer = () => {
 
         {/* Links */}
         <div className="flex flex-col gap-4 font-sans">
-          <h4 className="font-serif text-[#111111] text-xl mb-3 tracking-tight">About</h4>
+          <h4 className="font-serif text-[#111111] text-xl mb-3 tracking-tight">{t.footer.about}</h4>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">About Us</a>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">Features</a>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">News</a>
@@ -60,7 +53,7 @@ const Footer = () => {
         </div>
 
         <div className="flex flex-col gap-4 font-sans">
-          <h4 className="font-serif text-[#111111] text-xl mb-3 tracking-tight">Company</h4>
+          <h4 className="font-serif text-[#111111] text-xl mb-3 tracking-tight">{t.footer.company}</h4>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">Why Horizone</a>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">Partner with Us</a>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">FAQ</a>
@@ -68,7 +61,7 @@ const Footer = () => {
         </div>
 
         <div className="flex flex-col gap-4 font-sans">
-          <h4 className="font-serif text-[#111111] text-xl mb-3 tracking-tight">Support</h4>
+          <h4 className="font-serif text-[#111111] text-xl mb-3 tracking-tight">{t.footer.support}</h4>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">Account</a>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">Support Center</a>
           <a href="#" className="text-[#a3a3a3] hover:text-[#b49a78] transition-colors text-xs tracking-widest uppercase font-bold">Feedback</a>
@@ -83,7 +76,7 @@ const Footer = () => {
         viewport={{ once: true }}
         className="w-full max-w-[1800px] mx-auto px-6 md:px-12 lg:px-20 mt-20 pt-8 border-t border-neutral-100 flex flex-col md:flex-row justify-between items-center text-[#94a3b8] text-xs uppercase tracking-widest font-bold font-sans"
       >
-        <p>&copy; {new Date().getFullYear()} Odisha Tourism Development Corporation. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} {t.footer.rights}</p>
         <div className="flex gap-10 mt-6 md:mt-0">
           <a href="#" className="hover:text-[#b49a78] transition-colors">Privacy Policy</a>
           <a href="#" className="hover:text-[#b49a78] transition-colors">Terms of Service</a>
