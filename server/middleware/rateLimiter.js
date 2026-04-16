@@ -7,3 +7,11 @@ export const authLimiter = rateLimit({
   standardHeaders: true, 
   legacyHeaders: false, 
 });
+
+export const userWriteLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 60,
+  message: { message: "Too many user management requests, please try again shortly" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

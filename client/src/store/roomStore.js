@@ -2,7 +2,18 @@ import { create } from "zustand";
 import axiosInstance from "../config/axios";
 import { showError, showSuccess } from "../utils/toast";
 
-export const useRoomStore = create((set, get) => ({
+const sanitizeFilters = (filters = {}) => {
+  const next = { ...filters };
+
+  if (!next.search) delete next.search;
+  if (!next.category || next.category === "all") delete next.category;
+  if (!next.status || next.status === "all") delete next.status;
+  if (!next.hotel || next.hotel === "all") delete next.hotel;
+
+  return next;
+};
+
+export const useRoomStore = create((set) => ({
   rooms: [],
   pagination: { total: 0, page: 1, pages: 1 },
   isLoading: false,
@@ -11,7 +22,7 @@ export const useRoomStore = create((set, get) => ({
   fetchRooms: async (filters = {}) => {
     set({ isLoading: true, error: null });
     try {
-      const params = new URLSearchParams(filters).toString();
+      const params = new URLSearchParams(sanitizeFilters(filters)).toString();
       const res = await axiosInstance.get(`/rooms?${params}`);
       
       // Check if the response follows the new paginated format

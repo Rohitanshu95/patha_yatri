@@ -1,16 +1,57 @@
-import React from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore";
+import { useHotelStore } from "../../store/hotelStore";
+
+const getHotelId = (hotel) => {
+  if (!hotel) return "";
+  if (typeof hotel === "object") {
+    return hotel?._id ? String(hotel._id) : "";
+  }
+  return String(hotel);
+};
+
+const getHotelName = (hotel) => {
+  if (!hotel || typeof hotel !== "object") return "";
+  return typeof hotel.name === "string" ? hotel.name : "";
+};
 
 const SideBar = () => {
   const { user, logout } = useAuthStore();
+  const hotelNamesById = useHotelStore((state) => state.hotelNamesById);
+  const fetchHotelNameById = useHotelStore((state) => state.fetchHotelNameById);
   const location = useLocation();
 
+  const role = user?.role;
+  const isHotelScopedRole = role === "manager" || role === "receptionist";
+  const assignedHotelId = getHotelId(user?.hotel);
+  const embeddedHotelName = getHotelName(user?.hotel);
+  const resolvedHotelName = assignedHotelId ? hotelNamesById[assignedHotelId] || "" : "";
+
+  useEffect(() => {
+    if (!isHotelScopedRole || !assignedHotelId || embeddedHotelName || resolvedHotelName) {
+      return;
+    }
+
+    fetchHotelNameById(assignedHotelId);
+  }, [
+    isHotelScopedRole,
+    assignedHotelId,
+    embeddedHotelName,
+    resolvedHotelName,
+    fetchHotelNameById,
+  ]);
+
   if (!user) return null;
+
+  const sidebarTitle = isHotelScopedRole
+    ? embeddedHotelName || resolvedHotelName || (assignedHotelId ? "Hotel" : "Unassigned Hotel")
+    : "Pantha Nivas";
 
   const links = {
     admin: [
       { name: "Dashboard", path: "/app/admin", icon: "dashboard" },
+      { name: "Hotels", path: "/app/admin/hotels", icon: "apartment" },
       { name: "Users", path: "/app/admin/users", icon: "group" },
       { name: "Rooms", path: "/app/admin/rooms", icon: "bed" },
       { name: "Reports", path: "/app/admin/reports", icon: "assessment" },
@@ -19,14 +60,15 @@ const SideBar = () => {
     ],
     manager: [
       { name: "Dashboard", path: "/app/manager", icon: "dashboard" },
+      { name: "Users", path: "/app/manager/users", icon: "group" },
       { name: "Rooms", path: "/app/manager/rooms", icon: "bed" },
       { name: "Reports", path: "/app/manager/reports", icon: "assessment" },
     ],
     receptionist: [
       { name: "Dashboard", path: "/app/receptionist", icon: "dashboard" },
       { name: "Reservations", path: "/app/receptionist/bookings", icon: "calendar_month" },
-      { name:"Rooms", path: "/app/receptionist/rooms", icon: "bed"  },
-      {name: "Billing", path: "/app/receptionist/billing", icon: "receipt_long" },
+      { name: "Rooms", path: "/app/receptionist/rooms", icon: "bed" },
+      { name: "Billing", path: "/app/receptionist/billing", icon: "receipt_long" },
       { name: "Guest Folios", path: "/app/receptionist/guests", icon: "contact_page" },
       { name: "Housekeeping", path: "/app/receptionist/rooms", icon: "cleaning_services" },
     ]
@@ -35,20 +77,26 @@ const SideBar = () => {
   const navLinks = links[user.role] || [];
 
   return (
-    <aside className="h-screen w-64 flex-shrink-0 bg-surface-container border-r border-outline/15 flex flex-col py-8 z-20">
+    <aside className="h-screen w-64 shrink-0 bg-surface-container border-r border-outline/15 flex flex-col py-8 z-20">
       <div className="px-8 mb-12 flex items-center gap-3">
         <div className="w-10 h-10 rounded-none border border-primary flex items-center justify-center bg-surface">
-          <span className="text-primary font-serif text-lg">PY</span>
+          <span className="text-primary font-serif text-lg">PN</span>
         </div>
         <div>
-          <h2 className="text-xl font-serif tracking-widest text-on-surface uppercase">Patha Yatri</h2>
+          <h2 className="text-xl font-serif tracking-widest text-on-surface uppercase">{sidebarTitle}</h2>
           <p className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-medium">Luxe Management</p>
         </div>
       </div>
       
       <nav className="flex-1 space-y-1">
         {navLinks.map((link) => {
-          const isActive = location.pathname.includes(link.path);
+          const isDashboardRoot =
+            link.path === "/app/admin" ||
+            link.path === "/app/manager" ||
+            link.path === "/app/receptionist";
+          const isActive = isDashboardRoot
+            ? location.pathname === link.path
+            : location.pathname.startsWith(link.path);
           return (
             <NavLink
               key={link.name}

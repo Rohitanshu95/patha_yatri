@@ -37,6 +37,11 @@ const bookingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    hotel_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hotel",
+      required: true,
+    },
   },
   { timestamps: true },
 );

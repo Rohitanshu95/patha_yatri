@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useRoomStore } from "../../store/roomStore";
+import useAuthStore from "../../store/authStore";
+import { useHotelStore } from "../../store/hotelStore";
+import { showError } from "../../utils/toast";
 
 const statusConfig = {
   available: {
@@ -39,9 +42,26 @@ const categoryConfig = {
 
 const defaultRoomImage = "https://images.unsplash.com/photo-1611892440504-42a792e24d32?q=80&w=2070&auto=format&fit=crop";
 
+const getEmptyRoomForm = (hotel = "") => ({
+  room_number: "",
+  name: "",
+  room_category: "standard",
+  availability: "available",
+  price_per_night: "",
+  tax_percent: "",
+  max_occupants: 2,
+  hotel,
+  images: null,
+});
+
 const RoomManagement = () => {
   const { rooms, pagination, isLoading, fetchRooms, createRoom } = useRoomStore();
+  const { hotels: hotelOptions, fetchHotels } = useHotelStore();
+  const authUser = useAuthStore((state) => state.user);
+  const isAdmin = authUser?.role === "admin";
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedHotel, setSelectedHotel] = useState("all");
   
   // Filter States
   const [statusFilter, setStatusFilter] = useState("all");
@@ -54,16 +74,13 @@ const RoomManagement = () => {
   const itemsPerPage = 30; // Blueprint shows 6 per page
 
   // Form State
-  const [formData, setFormData] = useState({
-    room_number: "",
-    name: "",
-    room_category: "standard",
-    availability: "available",
-    price_per_night: "",
-    tax_percent: "",
-    max_occupants: 2,
-    images: null,
-  });
+  const [formData, setFormData] = useState(getEmptyRoomForm());
+
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    fetchHotels({ page: 1, limit: 200 });
+  }, [isAdmin, fetchHotels]);
 
   // Debounce Search
   useEffect(() => {
@@ -73,14 +90,28 @@ const RoomManagement = () => {
 
   // Fetch data when filters or pagination change
   useEffect(() => {
-    fetchRooms({
+    const filters = {
       page: currentPage,
       limit: itemsPerPage,
       search: debouncedSearch,
       category: categoryFilter,
-      status: statusFilter
-    });
-  }, [fetchRooms, currentPage, debouncedSearch, categoryFilter, statusFilter]);
+      status: statusFilter,
+    };
+
+    if (isAdmin && selectedHotel !== "all") {
+      filters.hotel = selectedHotel;
+    }
+
+    fetchRooms(filters);
+  }, [
+    fetchRooms,
+    currentPage,
+    debouncedSearch,
+    categoryFilter,
+    statusFilter,
+    isAdmin,
+    selectedHotel,
+  ]);
 
   const handleChange = (e) => {
     // ... logic remains the same
@@ -95,6 +126,16 @@ const RoomManagement = () => {
     // ... logic remains the same
     e.preventDefault();
     const data = new FormData();
+
+    if (isAdmin) {
+      const hotelToAssign = formData.hotel || (selectedHotel !== "all" ? selectedHotel : "");
+      if (!hotelToAssign) {
+        showError(null, "Please select a hotel before creating a room");
+        return;
+      }
+      data.append("hotel", hotelToAssign);
+    }
+
     data.append("room_number", formData.room_number);
     data.append("name", formData.name);
     data.append("room_category", formData.room_category);
@@ -111,16 +152,32 @@ const RoomManagement = () => {
     const success = await createRoom(data);
     if (success) {
       setIsModalOpen(false);
-      setFormData({ 
-        room_number: "", name: "", room_category: "standard", 
-        availability: "available", price_per_night: "", tax_percent: "", 
-        max_occupants: 2, images: null 
-      });
+      setFormData(getEmptyRoomForm(isAdmin && selectedHotel !== "all" ? selectedHotel : ""));
       // Refresh current page
-      fetchRooms({
-        page: currentPage, limit: itemsPerPage, search: debouncedSearch, category: categoryFilter, status: statusFilter
-      });
+      const filters = {
+        page: currentPage,
+        limit: itemsPerPage,
+        search: debouncedSearch,
+        category: categoryFilter,
+        status: statusFilter,
+      };
+
+      if (isAdmin && selectedHotel !== "all") {
+        filters.hotel = selectedHotel;
+      }
+
+      fetchRooms(filters);
     }
+  };
+
+  const openCreateModal = () => {
+    if (isAdmin && hotelOptions.length === 0) {
+      showError(null, "Create at least one hotel before adding rooms");
+      return;
+    }
+
+    setFormData(getEmptyRoomForm(isAdmin && selectedHotel !== "all" ? selectedHotel : ""));
+    setIsModalOpen(true);
   };
 
   // Status counts logic is slightly tricky since the backend returns paginated data.
@@ -159,9 +216,31 @@ const RoomManagement = () => {
             />
           </div>
 
+          {isAdmin && (
+            <div className="flex items-center gap-3 bg-neutral-50 px-4 py-3 rounded-sm border border-outline/15 min-w-56">
+              <span className="material-symbols-outlined text-on-surface-variant text-xl">apartment</span>
+              <select
+                value={selectedHotel}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedHotel(value);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent border-none focus:ring-0 text-sm w-full text-on-surface outline-none cursor-pointer"
+              >
+                <option value="all">All Hotels</option>
+                {hotelOptions.map((hotel) => (
+                  <option key={hotel._id} value={hotel._id}>
+                    {hotel.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-neutral-900 text-white border border-neutral-900 font-bold px-8 py-3 rounded-sm flex items-center gap-3 hover:bg-primary hover:border-primary transition-all uppercase text-xs tracking-widest flex-shrink-0 shadow-md"
+            onClick={openCreateModal}
+            className="bg-neutral-900 text-white border border-neutral-900 font-bold px-8 py-3 rounded-sm flex items-center gap-3 hover:bg-primary hover:border-primary transition-all uppercase text-xs tracking-widest shrink-0 shadow-md"
           >
             <span className="material-symbols-outlined text-sm">add</span>
             <span>Add New Suite</span>
@@ -174,25 +253,25 @@ const RoomManagement = () => {
         <div className="flex items-center gap-8">
           <button 
             onClick={() => { setStatusFilter("all"); setCurrentPage(1); }}
-            className={`text-sm pb-1 ${statusFilter === "all" ? "font-semibold text-on-surface border-b-2 border-primary -mb-[3px]" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
+            className={`text-sm pb-1 ${statusFilter === "all" ? "font-semibold text-on-surface border-b-2 border-primary -mb-0.75" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
           >
             All Inventory
           </button>
           <button 
             onClick={() => { setStatusFilter("available"); setCurrentPage(1); }}
-            className={`text-sm pb-1 ${statusFilter === "available" ? "font-semibold text-on-surface border-b-2 border-primary -mb-[3px]" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
+            className={`text-sm pb-1 ${statusFilter === "available" ? "font-semibold text-on-surface border-b-2 border-primary -mb-0.75" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
           >
             Available
           </button>
           <button 
             onClick={() => { setStatusFilter("occupied"); setCurrentPage(1); }}
-            className={`text-sm pb-1 ${statusFilter === "occupied" ? "font-semibold text-on-surface border-b-2 border-primary -mb-[3px]" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
+            className={`text-sm pb-1 ${statusFilter === "occupied" ? "font-semibold text-on-surface border-b-2 border-primary -mb-0.75" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
           >
             Occupied
           </button>
           <button 
             onClick={() => { setStatusFilter("maintenance"); setCurrentPage(1); }}
-            className={`text-sm pb-1 ${statusFilter === "maintenance" ? "font-semibold text-on-surface border-b-2 border-primary -mb-[3px]" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
+            className={`text-sm pb-1 ${statusFilter === "maintenance" ? "font-semibold text-on-surface border-b-2 border-primary -mb-0.75" : "font-medium text-on-surface-variant hover:text-primary transition-colors"}`}
           >
             Maintenance
           </button>
@@ -367,6 +446,26 @@ const RoomManagement = () => {
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-6">
+              {isAdmin && (
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Assign Hotel</label>
+                  <select
+                    name="hotel"
+                    required
+                    value={formData.hotel}
+                    onChange={handleChange}
+                    className="w-full bg-surface-container border border-outline/15 rounded-sm p-3 text-sm text-on-surface focus:border-primary focus:ring-0 outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Select hotel</option>
+                    {hotelOptions.map((hotel) => (
+                      <option key={hotel._id} value={hotel._id}>
+                        {hotel.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Room Identifier</label>
